@@ -10,11 +10,16 @@
       "
       flat
     >
-      <q-card-section>
-        <img class="absolute-center icon-top" src="../../assets/register.svg" />
+      <q-card-section class="q-pb-none">
+        <AuthBanner />
       </q-card-section>
+
       <q-card-section class="q-pb-none">
         <div class="row full-width items-end">
+          <img
+            class="q-mb-xs q-mr-sm icon-top"
+            src="../../assets/register.svg"
+          />
           <div class="col row text-h5">{{ $t('login.registeraccount') }}</div>
         </div>
         <div>
@@ -182,8 +187,8 @@
 .text-h5
   margin-bottom: 4px
 .icon-top
-  max-width: 80px
-  top: 0px
+  max-width: 40px
+  top: -4px
 .terms
   font-size: 80%
 </style>
@@ -196,11 +201,13 @@ import validator from 'validator';
 import PasswordMeter from 'src/components/PasswordMeter/PasswordMeter.vue';
 import { passwordStrength } from 'src/components/PasswordMeter';
 import useUser from 'src/modules/useUser';
+import AuthBanner from 'src/APPLICATION/config/authBanner.vue';
 
 export default defineComponent({
   name: 'RegisterUser',
   components: {
     PasswordMeter,
+    AuthBanner,
   },
   emits: ['cmd', 'error'],
   setup(_, { emit }) {

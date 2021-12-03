@@ -31,7 +31,7 @@ export default {
     buttonsignup: 'Register',
     allreadyaccount: 'Already have an account?',
     gotosignin: 'Login',
-    forgotpasswordtitle: 'Recover forgotted password',
+    forgotpasswordtitle: 'Recover password',
     forgotpasswordinfo: 'We will email you the password recovery instructions.',
     sendrecoverlink: 'Send me a link',
     gobacktosignin: 'Go back to Login',

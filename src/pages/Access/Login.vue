@@ -8,16 +8,16 @@
     "
     flat
   >
-    <q-card-section>
-      <img class="absolute-center icon-top" src="../../assets/padlock.svg" />
-      {{ isLogged }}
+    <q-card-section class="q-pb-none">
+      <AuthBanner />
     </q-card-section>
     <q-card-section class="q-pb-none">
       <div class="row full-width items-end">
-        <div class="col row text-h5">{{ $t('login.login') }}</div>
+        <img class="q-mb-xs q-mr-sm icon-top" src="../../assets/padlock.svg" />
+        <div class="col row text-h6">{{ $t('login.login') }}</div>
       </div>
       <div>
-        <q-separator size="2px" color="primary" />
+        <q-separator size="2px" />
         <div class="col q-mt-sm">{{ $t('login.useemail') }}</div>
       </div>
     </q-card-section>
@@ -81,8 +81,8 @@
 .text-h5
   margin-bottom: 4px
 .icon-top
-  max-width: 80px
-  top: 0px
+  max-width: 40px
+  top: -4px
 </style>
 
 <script lang="ts">
@@ -92,9 +92,13 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 
 import useUser from 'src/modules/useUser';
+import AuthBanner from 'src/APPLICATION/config/authBanner.vue';
 
 export default defineComponent({
   name: 'LoginPage',
+  components: {
+    AuthBanner,
+  },
   emits: ['cmd', 'error'],
   setup(_, { emit }) {
     // eslint-disable-next-line @typescript-eslint/unbound-method

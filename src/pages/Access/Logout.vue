@@ -8,7 +8,7 @@
       flat
     >
       <q-card-section>
-        <img class="absolute-center icon-top" src="../../assets/login.svg" />
+        <AuthBanner />
       </q-card-section>
 
       <q-card-section>
@@ -56,9 +56,13 @@ a:active
 import { defineComponent } from 'vue';
 import useUser from 'src/modules/useUser';
 import { useRouter } from 'vue-router';
+import AuthBanner from 'src/APPLICATION/config/authBanner.vue';
 
 export default defineComponent({
-  name: 'LoginPage',
+  name: 'logout',
+  components: {
+    AuthBanner,
+  },
   setup() {
     const { isLogged, logout } = useUser();
     const router = useRouter();

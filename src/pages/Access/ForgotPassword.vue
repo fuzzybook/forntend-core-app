@@ -9,14 +9,16 @@
       "
       flat
     >
-      <q-card-section>
-        <img
-          class="absolute-center icon-top"
-          src="../../assets/resendPassword.svg"
-        />
+      <q-card-section class="q-pb-none">
+        <AuthBanner />
       </q-card-section>
+
       <q-card-section>
         <div class="row full-width items-end">
+          <img
+            class="q-mb-xs q-mr-sm icon-top"
+            src="../../assets/resendPassword.svg"
+          />
           <div class="col row text-h5">
             {{ $t('login.forgotpasswordtitle') }}
           </div>
@@ -117,8 +119,8 @@
 .text-h5
   margin-bottom: 4px
 .icon-top
-  max-width: 80px
-  top: 0px
+  max-width: 40px
+  top: -4px
 </style>
 
 <script lang="ts">
@@ -127,9 +129,13 @@ import validator from 'validator';
 import { useQuasar, QInput } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import useUser from 'src/modules/useUser';
+import AuthBanner from 'src/APPLICATION/config/authBanner.vue';
 
 export default defineComponent({
   name: 'ForgotPassword',
+  components: {
+    AuthBanner,
+  },
   emits: ['cmd', 'error'],
   setup(_, { emit }) {
     // eslint-disable-next-line @typescript-eslint/unbound-method
