@@ -1,0 +1,12 @@
+schema: http://localhost:4000/graphql
+generates:
+  ./src/grapql.d.ts:
+    config:
+      enumsAsTypes: true
+      scalars:
+        DateTime: Date
+        RolesResponse: RoleResponse
+        SocialData: SocialDataResponse
+        SocialsResponse: SocialResponse
+    plugins:
+      - typescript

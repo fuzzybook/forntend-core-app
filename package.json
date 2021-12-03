@@ -1,0 +1,65 @@
+{
+  "name": "frontend-app",
+  "version": "0.0.1",
+  "description": "A Quasar Framework app",
+  "productName": "Quasar App",
+  "author": "Fuzzybook <fabio@prada.ch>",
+  "private": true,
+  "scripts": {
+    "lint": "eslint --ext .js,.ts,.vue ./",
+    "test": "echo \"No test specified\" && exit 0",
+    "updateApi": "node tasks/getApi.js &&  npx prettier --write \"./src/generatedApi/*.{ts,js}\" "
+  },
+  "dependencies": {
+    "@apollo/client": "^3.4.10",
+    "@quasar/extras": "^1.0.0",
+    "@vue/apollo-composable": "^4.0.0-alpha.15",
+    "@vueuse/core": "^6.5.3",
+    "apollo-cache-inmemory": "^1.6.6",
+    "apollo-client": "^2.6.10",
+    "apollo-link": "^1.2.14",
+    "apollo-link-context": "^1.0.20",
+    "apollo-link-error": "^1.1.13",
+    "apollo-link-http": "^1.5.17",
+    "apollo-link-ws": "^1.0.20",
+    "core-js": "^3.6.5",
+    "graphql": "^15.5.3",
+    "quasar": "^2.0.3",
+    "subscriptions-transport-ws": "^0.11.0",
+    "validator": "^13.6.0",
+    "vue-advanced-cropper": "^2.6.3",
+    "vue-i18n": "^9.2.0-beta.17",
+    "vuex": "^4.0.1"
+  },
+  "devDependencies": {
+    "@babel/eslint-parser": "^7.13.14",
+    "@graphql-codegen/add": "^3.1.0",
+    "@graphql-codegen/cli": "^2.2.0",
+    "@graphql-codegen/typescript": "^2.2.0",
+    "@quasar/app": "^3.0.3",
+    "@types/node": "^10.17.15",
+    "@types/validator": "^13.6.3",
+    "@typescript-eslint/eslint-plugin": "^4.16.1",
+    "@typescript-eslint/parser": "^4.16.1",
+    "eslint": "^7.14.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-vue": "^7.0.0",
+    "node-fetch": "^2.6.1"
+  },
+  "browserslist": [
+    "last 10 Chrome versions",
+    "last 10 Firefox versions",
+    "last 4 Edge versions",
+    "last 7 Safari versions",
+    "last 8 Android versions",
+    "last 8 ChromeAndroid versions",
+    "last 8 FirefoxAndroid versions",
+    "last 10 iOS versions",
+    "last 5 Opera versions"
+  ],
+  "engines": {
+    "node": ">= 12.22.1",
+    "npm": ">= 6.13.4",
+    "yarn": ">= 1.21.1"
+  }
+}
