@@ -113,7 +113,7 @@ import { defineComponent, ref, onMounted, onBeforeUpdate } from 'vue';
 import useUser from 'src/modules/useUser';
 import { QForm, QInput, useQuasar } from 'quasar';
 import useSystem, { ISocials } from 'src/modules/useSystem';
-import { siteConfig } from 'src/config/site';
+import { siteConfig } from 'src/APPLICATION/config/site';
 
 type ISocialInput = { address: string };
 type ISocialsInput = { [key: string]: ISocialInput };

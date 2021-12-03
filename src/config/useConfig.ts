@@ -1,6 +1,6 @@
 import { toRefs } from 'vue';
 import { drawerMenu } from './drawerMenu';
-import { siteConfig } from '../APPLICATION/condfig/site';
+import { siteConfig } from '../APPLICATION/config/site';
 
 export default function useConfig() {
   return {

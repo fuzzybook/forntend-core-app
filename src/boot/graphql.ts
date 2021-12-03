@@ -11,7 +11,7 @@ import useUsers from 'src/modules/useUser';
 import useSystem from 'src/modules/useSystem';
 
 import { setContext } from 'apollo-link-context';
-import { siteConfig } from 'src/APPLICATION/condfig/site';
+import { siteConfig } from 'src/APPLICATION/config/site';
 
 export const getErrorUrl = (error: string): string => {
   const message = parseGqlErrorMessage(error);
