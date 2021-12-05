@@ -146,7 +146,7 @@ export default function useSystem() {
         });
       }
     };
-    if (item.role?.toUpperCase() == state.system.roleSuperadmin)
+    if (item.role?.toLowerCase() == state.system.roleSuperadmin)
       item.selected = false;
     select(item);
   };
@@ -169,7 +169,7 @@ export default function useSystem() {
         });
       }
     };
-    if (value.toUpperCase() !== state.system.roleSuperadmin)
+    if (value.toLowerCase() !== state.system.roleSuperadmin)
       clearSuperadminRole(role);
     select(role, value, <AuthRolesResponse>{});
   };
@@ -178,7 +178,7 @@ export default function useSystem() {
     const resetRole = (role: AuthRolesResponse, roles: string[]) => {
       if (role.roles) {
         role.roles.forEach((r) => {
-          if (r.role && roles.includes(r.role.toUpperCase())) {
+          if (r.role && roles.includes(r.role.toLowerCase())) {
             r.selected = true;
           } else {
             r.selected = false;
@@ -216,8 +216,8 @@ export default function useSystem() {
           l += '<span class="q-ml-sm"></span>';
         }
         html += `<li class="tooltip-item ${
-          userRoles.includes(s.toUpperCase()) ? 'selected' : ''
-        }">${l}<span class="item-text">${s.toUpperCase()}</span></li>`;
+          userRoles.includes(s.toLowerCase()) ? 'selected' : ''
+        }">${l}<span class="item-text">${s.toLowerCase()}</span></li>`;
         getRolesasHtml(r as AuthRolesResponse, level, userRoles);
       });
     };
@@ -234,7 +234,7 @@ export default function useSystem() {
     const result = <string[]>[];
     const select = (ro: AuthRolesResponse) => {
       if (ro.selected && ro.role) {
-        result.push(ro.role?.toUpperCase());
+        result.push(ro.role?.toLowerCase());
         return;
       }
       if (ro.roles) {

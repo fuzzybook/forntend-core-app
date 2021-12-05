@@ -87,7 +87,7 @@ export default defineComponent({
           }
           break;
         case 'roles':
-          const roles = data as string[];
+          const roles = (data as string[]).map((v) => v.toLowerCase());
           const rolesResult = await setRoles(row.id, roles);
           if (rolesResult) {
             $q.dialog({
