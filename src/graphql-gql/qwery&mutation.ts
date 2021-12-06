@@ -298,3 +298,9 @@ export const SET_USER_SOCIALS = gql`
     saveSocials(socials: $socials)
   }
 `;
+
+export const UPDATE_USER_PASSWORD = gql`
+  mutation setUserPassword($data: UpdateUserPasswordInput!) {
+    setUserPassword(data: $data)
+  }
+`;

@@ -196,7 +196,7 @@ export default function useUser() {
     }
   }
 
-  async function getAvatar(id: string): Promise<string | boolean> {
+  async function getAvatar(id: string): Promise<string> {
     try {
       const {
         data: { avatar },
@@ -210,10 +210,10 @@ export default function useUser() {
       if (avatar) {
         return avatar;
       }
-      return false;
+      return '';
     } catch (error) {
       console.log(error);
-      return false;
+      return '';
     }
   }
 

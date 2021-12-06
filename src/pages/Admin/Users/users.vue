@@ -8,6 +8,8 @@
       @search="search"
       @action="action"
     />
+    <ChangeUserPassword v-model="openPasswordDialog" />
+    <AvatarDialog v-model="openAvatar" :userId="userId" />
   </q-page>
 </template>
 
@@ -15,6 +17,7 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import useAdmin from 'src/modules/useAdmin';
 import { useRouter } from 'vue-router';
+import useUser from 'src/modules/useUser';
 import DataTable from 'components/DataTable/Table.vue';
 import { usersSchema } from './usersSchema';
 import { ITableSchema, IAction } from 'src/components/DataTable/types';
@@ -22,11 +25,15 @@ import { UserStatus } from 'src/grapql';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { getErrorUrl } from 'src/boot/graphql';
+import ChangeUserPassword from './changeUserPassword.vue';
+import AvatarDialog from 'src/components/Images/AvatarDialog.vue';
 
 export default defineComponent({
   name: 'UsersPage',
   components: {
     DataTable,
+    ChangeUserPassword,
+    AvatarDialog,
   },
   props: {
     title: {
@@ -39,10 +46,14 @@ export default defineComponent({
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { t } = useI18n();
     const $q = useQuasar();
+    const { user } = useUser();
     const router = useRouter();
     const { getAllUsers, setStatus, setRoles, users } = useAdmin();
     const schema = ref<ITableSchema>(usersSchema as ITableSchema);
     const ready = ref(false);
+    const openPasswordDialog = ref(false);
+    const openAvatar = ref<boolean>(false);
+    const userId = ref<string>('');
     let tableKey = 0;
 
     onMounted(async () => {
@@ -66,6 +77,15 @@ export default defineComponent({
       console.log('action', args);
       const { action, row, data } = args;
       switch (action) {
+        case 'avatar':
+          console.log(row);
+          userId.value = row.id;
+          openAvatar.value = true;
+          break;
+        case 'changepassword':
+          console.log(row);
+          openPasswordDialog.value = true;
+          break;
         case 'status':
           const status = data as string;
           const result = await setStatus(row.id, status as UserStatus);
@@ -108,7 +128,17 @@ export default defineComponent({
           break;
       }
     };
-    return { users, schema, ready, search, action, tableKey };
+    return {
+      users,
+      schema,
+      ready,
+      openPasswordDialog,
+      userId,
+      openAvatar,
+      search,
+      action,
+      tableKey,
+    };
   },
 });
 </script>

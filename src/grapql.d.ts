@@ -79,6 +79,7 @@ export type Mutation = {
   saveSocials: Scalars['Boolean'];
   setNewPassword: LoginResponse;
   setRoles: UserResponse;
+  setUserPassword: Scalars['Boolean'];
   update: UserResponse;
   updateStatus: Scalars['Boolean'];
   userDataSetFile: Scalars['Boolean'];
@@ -142,6 +143,11 @@ export type MutationSetNewPasswordArgs = {
 
 export type MutationSetRolesArgs = {
   data: SetRolesInput;
+};
+
+
+export type MutationSetUserPasswordArgs = {
+  data: UpdateUserPasswordInput;
 };
 
 
@@ -316,6 +322,11 @@ export type UpdateUserInput = {
   id: Scalars['String'];
   profile?: Maybe<UserProfileInput>;
   status?: Maybe<UserStatus>;
+};
+
+export type UpdateUserPasswordInput = {
+  password: Scalars['String'];
+  userId: Scalars['String'];
 };
 
 export type UpdateUserStatusInput = {

@@ -1,6 +1,6 @@
 <template>
   <q-page v-auth class="column test">
-    <AvatarDialog v-model="openAvatar" :avatar="av" @save="saveAvatar" />
+    <AvatarDialog v-model="openAvatar" @save="saveAvatar" />
     <div class="row items-center q-pa-sm">
       <div class="row items-center">
         <div class="q-mr-md" style="position: relative">

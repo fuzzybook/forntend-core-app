@@ -31,7 +31,7 @@
       <q-card-actions class="q-mx-sm q-mb-sm">
         <div class="row items-end justify-between full-width">
           <q-avatar v-if="!result" size="100px">
-            <img :src="avatar" />
+            <img :src="myAvatar" />
           </q-avatar>
           <q-avatar v-if="result" size="100px">
             <preview
@@ -139,6 +139,8 @@ import 'vue-advanced-cropper/dist/theme.compact.css';
 import { QInput } from 'quasar';
 import CaptureCamera from 'src/components/Images/CaptureCamera.vue';
 import DialogToolbar from 'components/DialogToolbar.vue';
+import useUser from 'src/modules/useUser';
+import { useAsyncTask } from 'vue-concurrency';
 
 interface CropperComponent {
   getResult: () => CropperResult;
@@ -170,9 +172,9 @@ export default defineComponent({
       type: Boolean as PropType<boolean>,
       required: true,
     },
-    avatar: {
+    userId: {
       type: String as PropType<string>,
-      required: true,
+      required: false,
     },
   },
   emits: ['update:modelValue', 'save'],
@@ -187,6 +189,8 @@ export default defineComponent({
     const reader = new FileReader();
     const fileInput = ref<QInput>();
     const cropperLib = ref<CropperComponent>();
+    const myAvatar = ref<string>('');
+    const { getAvatar, user } = useUser();
 
     watch(
       () => props.modelValue,
@@ -202,8 +206,20 @@ export default defineComponent({
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     watchEffect(() => {});
 
+    const getUsersTask = useAsyncTask(async (signal, data) => {
+      const response: string = await getAvatar(data);
+      myAvatar.value = response;
+      return response;
+    });
+
     const open = computed({
       get: () => {
+        console.log(props.userId);
+        if (props.userId) {
+          void getUsersTask.perform(props.userId);
+        } else {
+          void getUsersTask.perform(user.value?.id);
+        }
         return props.modelValue;
       },
       set: (value) => {
@@ -281,6 +297,7 @@ export default defineComponent({
       new_file,
       fileInput,
       cropperLib,
+      myAvatar,
       getFile,
       getCamera,
       afterShow,

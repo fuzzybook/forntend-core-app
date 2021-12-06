@@ -5,6 +5,7 @@ import {
   GET_USERS,
   SET_ROLES,
   SET_STATUS,
+  UPDATE_USER_PASSWORD,
 } from 'src/graphql-gql/qwery&mutation';
 
 interface AdminState {
@@ -100,10 +101,39 @@ export default function useAdmin() {
     }
   };
 
+  const updatePassword = async (
+    userId: string | undefined,
+    password: string
+  ): Promise<boolean | string> => {
+    const user = adminState.users.find((user) => user.id === userId);
+    if (!user) {
+      return 'uesr not found';
+    }
+    try {
+      const { data } = await apolloClient.mutate<boolean>({
+        mutation: UPDATE_USER_PASSWORD,
+        variables: {
+          data: {
+            userId: userId,
+            password: password,
+          },
+        },
+      });
+      if (data) {
+        console.log(data);
+      }
+
+      return true;
+    } catch (error) {
+      return parseGqlError(error as Error);
+    }
+  };
+
   return {
     ...toRefs(adminState),
     getAllUsers,
     setStatus,
     setRoles,
+    updatePassword,
   };
 }
