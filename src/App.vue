@@ -8,7 +8,6 @@ import useUser from 'src/modules/useUser';
 import { useRouter } from 'vue-router';
 import useSystem from 'src/modules/useSystem';
 import { useRoute } from 'vue-router';
-import 'regenerator-runtime';
 
 export default defineComponent({
   name: 'App',

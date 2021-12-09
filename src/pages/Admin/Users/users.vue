@@ -9,7 +9,7 @@
       @action="action"
     />
     <ChangeUserPassword v-model="openPasswordDialog" />
-    <AvatarDialog v-model="openAvatar" :userId="userId" />
+    <AvatarDialog v-model="openAvatar" :userId="userId" :adminMode="true" />
   </q-page>
 </template>
 

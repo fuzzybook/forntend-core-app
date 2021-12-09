@@ -31,7 +31,7 @@
       <q-card-actions class="q-mx-sm q-mb-sm">
         <div class="row items-end justify-between full-width">
           <q-avatar v-if="!result" size="100px">
-            <img :src="myAvatar" />
+            <img v-if="myAvatar" :src="myAvatar" />
           </q-avatar>
           <q-avatar v-if="result" size="100px">
             <preview
@@ -43,6 +43,13 @@
           </q-avatar>
           <div />
           <div class="row">
+            <q-btn
+              v-if="adminMode"
+              class="q-ml-sm"
+              color="primary"
+              icon="delete"
+              @click="remove"
+            />
             <q-btn
               class="q-ml-sm"
               color="primary"
@@ -121,7 +128,6 @@ import {
   ref,
   PropType,
   computed,
-  watchEffect,
   shallowRef,
   watch,
 } from 'vue';
@@ -136,11 +142,10 @@ import {
 } from 'vue-advanced-cropper';
 import 'vue-advanced-cropper/dist/style.css';
 import 'vue-advanced-cropper/dist/theme.compact.css';
-import { QInput } from 'quasar';
+import { QInput, useQuasar } from 'quasar';
 import CaptureCamera from 'src/components/Images/CaptureCamera.vue';
 import DialogToolbar from 'components/DialogToolbar.vue';
 import useUser from 'src/modules/useUser';
-import { useAsyncTask } from 'vue-concurrency';
 
 interface CropperComponent {
   getResult: () => CropperResult;
@@ -172,13 +177,23 @@ export default defineComponent({
       type: Boolean as PropType<boolean>,
       required: true,
     },
+    avatar: {
+      type: String as PropType<string>,
+      required: false,
+    },
     userId: {
       type: String as PropType<string>,
       required: false,
     },
+    adminMode: {
+      type: Boolean as PropType<boolean>,
+      required: false,
+      default: false,
+    },
   },
-  emits: ['update:modelValue', 'save'],
+  emits: ['update:modelValue'],
   setup(props, { emit }) {
+    const $q = useQuasar();
     const ready = ref(false);
     const status = ref<Status>(Status.init);
     const cameraActive = ref(false);
@@ -190,7 +205,15 @@ export default defineComponent({
     const fileInput = ref<QInput>();
     const cropperLib = ref<CropperComponent>();
     const myAvatar = ref<string>('');
-    const { getAvatar, user } = useUser();
+    const { getAvatar, setAvatar, user } = useUser();
+    const open = computed({
+      get: () => {
+        return props.modelValue;
+      },
+      set: (value) => {
+        emit('update:modelValue', value);
+      },
+    });
 
     watch(
       () => props.modelValue,
@@ -203,28 +226,15 @@ export default defineComponent({
       }
     );
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    watchEffect(() => {});
-
-    const getUsersTask = useAsyncTask(async (signal, data) => {
-      const response: string = await getAvatar(data);
-      myAvatar.value = response;
-      return response;
-    });
-
-    const open = computed({
-      get: () => {
-        console.log(props.userId);
-        if (props.userId) {
-          void getUsersTask.perform(props.userId);
-        } else {
-          void getUsersTask.perform(user.value?.id);
-        }
-        return props.modelValue;
-      },
-      set: (value) => {
-        emit('update:modelValue', value);
-      },
+    watch(open, () => {
+      const id: string = props.userId ? props.userId : user.value?.id || '0';
+      getAvatar(id)
+        .then((value) => {
+          myAvatar.value = value;
+        })
+        .catch((error) => {
+          console.log(error);
+        });
     });
 
     reader.addEventListener(
@@ -245,16 +255,64 @@ export default defineComponent({
       open.value = false;
     };
 
-    const save = () => {
+    const save = async () => {
       // open.value = false;
       if (cropperLib.value) {
         const { coordinates, image, visibleArea, canvas } =
           cropperLib.value?.getResult();
         console.log(coordinates, image, visibleArea, canvas);
         if (canvas) {
-          emit('save', canvas.toDataURL());
+          const id: string = props.userId
+            ? props.userId
+            : user.value?.id || '0';
+          const error = await setAvatar(id, canvas.toDataURL());
+          if (!error) {
+            $q.notify({
+              color: 'positive',
+              textColor: 'white',
+              icon: 'thumb_up_off_alt',
+              message: 'avatar saved successfully!',
+              position: 'top-right',
+              timeout: 3000,
+            });
+          } else {
+            $q.notify({
+              color: 'negative',
+              textColor: 'white',
+              icon: 'thumb_down_off_alt',
+              message: 'save avatar error',
+              position: 'top-right',
+              timeout: 3000,
+            });
+          }
         }
       }
+    };
+
+    const remove = async () => {
+      const id: string = props.userId ? props.userId : user.value?.id || '0';
+      const error = await setAvatar(id, '');
+
+      if (!error) {
+        $q.notify({
+          color: 'positive',
+          textColor: 'white',
+          icon: 'thumb_up_off_alt',
+          message: 'avatar removed successfully!',
+          position: 'top-right',
+          timeout: 3000,
+        });
+      } else {
+        $q.notify({
+          color: 'negative',
+          textColor: 'white',
+          icon: 'thumb_down_off_alt',
+          message: 'remove avatar error',
+          position: 'top-right',
+          timeout: 3000,
+        });
+      }
+      myAvatar.value = await getAvatar(id);
     };
 
     const change = (_result: CropperResult) => {
@@ -305,6 +363,7 @@ export default defineComponent({
       hide,
       save,
       update,
+      remove,
       cameraActive,
       taked,
       status,

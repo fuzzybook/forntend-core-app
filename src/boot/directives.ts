@@ -8,7 +8,6 @@ interface Node {
 }
 
 export default boot(({ app }) => {
-  // Set i18n instance on app
   console.log('directives');
   app.directive('auth', {
     beforeMount(el: Node) {

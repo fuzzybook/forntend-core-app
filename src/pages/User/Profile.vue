@@ -1,6 +1,6 @@
 <template>
   <q-page v-auth class="column test">
-    <AvatarDialog v-model="openAvatar" @save="saveAvatar" />
+    <AvatarDialog v-model="openAvatar" />
     <div class="row items-center q-pa-sm">
       <div class="row items-center">
         <div class="q-mr-md" style="position: relative">
@@ -75,10 +75,10 @@ import { defineComponent, ref, onMounted } from 'vue';
 import useUser from 'src/modules/useUser';
 import useSystem from 'src/modules/useSystem';
 import Avatar from 'components/Images/Avatar.vue';
-import MainData from './MainData.vue';
-import ContactsData from './ContactsData.vue';
-import SocialsData from './SocialsData.vue';
-import PreferencesData from './PreferencesData.vue';
+import MainData from '../../components/User/MainData.vue';
+import ContactsData from '../../components/User/ContactsData.vue';
+import SocialsData from '../../components/User/SocialsData.vue';
+import PreferencesData from '../../components/User/PreferencesData.vue';
 import AvatarDialog from 'src/components/Images/AvatarDialog.vue';
 
 export default defineComponent({
@@ -103,12 +103,6 @@ export default defineComponent({
       av.value = (await avatar()) as string;
     });
 
-    const saveAvatar = async (_avatar: string) => {
-      await setAvatar(user.value?.id || '', _avatar);
-      av.value = (await avatar()) as string;
-      openAvatar.value = false;
-    };
-
     const editAvatar = () => {
       openAvatar.value = true;
       console.log('editAvatar', editAvatar);
@@ -122,7 +116,6 @@ export default defineComponent({
       tab: ref('main'),
       av,
       openAvatar,
-      saveAvatar,
       editAvatar,
       updateTab(val: string) {
         console.log(val);
