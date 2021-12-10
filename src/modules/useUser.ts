@@ -18,13 +18,14 @@ import {
   ALIVE,
   HEARTBEAT,
   SET_USER_SOCIALS,
+  SET_PROFILE,
 } from 'src/graphql-gql/qwery&mutation';
 
 import {
-  ProfileResponse,
   UserPreferencesInput,
   UserResponse,
   UserProfileInput,
+  ProfileResponse,
 } from 'src/grapql';
 
 interface UserState {
@@ -88,7 +89,11 @@ interface NicknameResponse {
   nicknameExist?: boolean;
 }
 
-interface UserProfileResponse {
+interface SaveUserProfileResponse {
+  saveUserProfile?: boolean;
+}
+
+interface SaveProfileResponse {
   saveProfile?: boolean;
 }
 
@@ -412,47 +417,98 @@ export default function useUser() {
     }
   }
 
-  async function saveUserMainData(
+  function updateUserMainData(profile: UserProfileInput) {
+    if (userState.user && userState.user.profile) {
+      userState.user.profile.nickname = profile.nickname;
+      userState.user.profile.title = profile.title;
+      userState.user.profile.firstName = profile.firstName;
+      userState.user.profile.lastName = profile.lastName;
+    } else if (userState.user) {
+      userState.user.profile = profile;
+    }
+  }
+
+  async function saveMainData(
     nickname: string,
     title: string,
     firstName: string,
     lastName: string
-  ): Promise<boolean | string> {
+  ): Promise<UserProfileInput | string> {
     try {
-      if (userState.user && userState.user.profile) {
-        userState.user.profile.nickname = nickname;
-        userState.user.profile.title = title;
-        userState.user.profile.firstName = firstName;
-        userState.user.profile.lastName = lastName;
-      } else if (userState.user) {
-        userState.user.profile = <ProfileResponse>{
-          nickname,
-          title,
-          firstName,
-          lastName,
-        };
-      }
-
-      const profile: UserProfileInput = <UserProfileInput>(
-        userState.user?.profile
-      );
-      delete (profile as unknown as { [key: string]: string }).__typename;
-
-      const { data } = await apolloClient.mutate<UserProfileResponse>({
-        mutation: SET_USER_PROFILE,
+      const profile = <ProfileResponse>{
+        nickname,
+        title,
+        firstName,
+        lastName,
+      };
+      const { data } = await apolloClient.mutate<SaveProfileResponse>({
+        mutation: SET_PROFILE,
         variables: {
           profile,
         },
       });
-      console.log(data);
+      if (data?.saveProfile) {
+        updateUserMainData(profile);
+        return profile;
+      }
 
-      return true;
+      return 'error.savemaindata';
     } catch (error) {
       return error as string;
     }
   }
 
+  async function saveUserMainData(
+    userId: string,
+    nickname: string,
+    title: string,
+    firstName: string,
+    lastName: string
+  ): Promise<UserProfileInput | string> {
+    try {
+      const profile = <ProfileResponse>{
+        nickname,
+        title,
+        firstName,
+        lastName,
+      };
+
+      const { data } = await apolloClient.mutate<SaveUserProfileResponse>({
+        mutation: SET_USER_PROFILE,
+        variables: {
+          userId,
+          profile,
+        },
+      });
+      if (data?.saveUserProfile) {
+        if (userState.user?.id === userId) {
+          updateUserMainData(profile);
+        }
+        return profile;
+      }
+
+      return 'error.savemaindata';
+    } catch (error) {
+      return error as string;
+    }
+  }
+
+  function updateUserProfile(profile: UserProfileInput) {
+    if (userState.user && userState.user.profile) {
+      userState.user.profile.phoneNumber = profile.phoneNumber;
+      userState.user.profile.mobileNumber = profile.mobileNumber;
+      userState.user.profile.address1 = profile.address1;
+      userState.user.profile.address2 = profile.address2;
+      userState.user.profile.zip = profile.zip;
+      userState.user.profile.city = profile.city;
+      userState.user.profile.country = profile.country;
+    } else if (userState.user) {
+      userState.user.profile = profile;
+    }
+  }
+
   async function saveUserContacts(
+    userId: string | null,
     phoneNumber: string,
     mobileNumber: string,
     address1: string,
@@ -460,53 +516,61 @@ export default function useUser() {
     zip: string,
     city: string,
     country: string
-  ): Promise<boolean | string> {
+  ): Promise<ProfileResponse | string> {
     try {
-      if (userState.user && userState.user.profile) {
-        userState.user.profile.phoneNumber = phoneNumber;
-        userState.user.profile.mobileNumber = mobileNumber;
-        userState.user.profile.address1 = address1;
-        userState.user.profile.address2 = address2;
-        userState.user.profile.zip = zip;
-        userState.user.profile.city = city;
-        userState.user.profile.country = country;
-      } else if (userState.user) {
-        userState.user.profile = <ProfileResponse>{
-          phoneNumber,
-          mobileNumber,
-          address1,
-          address2,
-          zip,
-          city,
-          country,
-        };
+      const profile = <ProfileResponse>{
+        phoneNumber,
+        mobileNumber,
+        address1,
+        address2,
+        zip,
+        city,
+        country,
+      };
+
+      if (userId) {
+        const { data } = await apolloClient.mutate<SaveUserProfileResponse>({
+          mutation: SET_USER_PROFILE,
+          variables: {
+            userId,
+            profile,
+          },
+        });
+        if (data?.saveUserProfile) {
+          if (userState.user?.id === userId) {
+            updateUserProfile(profile);
+          }
+          return profile;
+        }
+        return 'profile.saveerror';
+      } else {
+        const { data } = await apolloClient.mutate<SaveProfileResponse>({
+          mutation: SET_PROFILE,
+          variables: {
+            profile,
+          },
+        });
+        if (data?.saveProfile) {
+          updateUserProfile(profile);
+          return profile;
+        }
+        return 'profile.saveerror';
       }
-
-      const profile: UserProfileInput = <UserProfileInput>(
-        userState.user?.profile
-      );
-      delete (profile as unknown as { [key: string]: string }).__typename;
-
-      const { data } = await apolloClient.mutate<UserProfileResponse>({
-        mutation: SET_USER_PROFILE,
-        variables: {
-          profile,
-        },
-      });
-      console.log(data);
-
-      return true;
     } catch (error) {
       return error as string;
     }
   }
 
-  async function nicknameExist(nickname: string): Promise<string | boolean> {
+  async function nicknameExist(
+    nickname: string,
+    userId: string
+  ): Promise<string | boolean> {
     try {
       const { data } = await apolloClient.query<NicknameResponse>({
         query: NICKNAME_EXIST,
         fetchPolicy: 'network-only',
         variables: {
+          userId,
           nickname,
         },
       });
@@ -553,9 +617,11 @@ export default function useUser() {
     setAvatar,
     getAvatar,
     savePreferences,
-    saveUserMainData,
+    saveMainData,
     saveUserContacts,
     saveSocials,
+
+    saveUserMainData,
     nicknameExist,
   };
 }

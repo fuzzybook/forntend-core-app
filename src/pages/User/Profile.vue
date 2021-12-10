@@ -36,7 +36,7 @@
       mobile-arrows
       style="max-width: 100vw"
     >
-      <q-tab name="main" label="Main" @update="updateTab" />
+      <q-tab name="main" label="Main" />
       <q-tab name="contacts" label="Contacts" />
       <q-tab name="social" label="Social" />
       <q-tab name="preferences" label="Preferences" />
@@ -60,11 +60,6 @@
       <q-tab-panel name="preferences">
         <PreferencesData />
       </q-tab-panel>
-
-      <q-tab-panel name="social">
-        <div class="text-h6">Social</div>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit.
-      </q-tab-panel>
     </q-tab-panels>
   </q-page>
 </template>
@@ -75,10 +70,10 @@ import { defineComponent, ref, onMounted } from 'vue';
 import useUser from 'src/modules/useUser';
 import useSystem from 'src/modules/useSystem';
 import Avatar from 'components/Images/Avatar.vue';
-import MainData from '../../components/User/MainData.vue';
-import ContactsData from '../../components/User/ContactsData.vue';
-import SocialsData from '../../components/User/SocialsData.vue';
-import PreferencesData from '../../components/User/PreferencesData.vue';
+import MainData from 'src/components/User/MainData.vue';
+import ContactsData from 'src/components/User/ContactsData.vue';
+import SocialsData from 'src/components/User/SocialsData.vue';
+import PreferencesData from 'src/components/User/PreferencesData.vue';
 import AvatarDialog from 'src/components/Images/AvatarDialog.vue';
 
 export default defineComponent({
@@ -94,7 +89,7 @@ export default defineComponent({
   setup() {
     const showError = ref<boolean>(false);
     const errorMessage = ref<string>('');
-    const { user, setAvatar, avatar } = useUser();
+    const { user, avatar } = useUser();
     const { isIdle } = useSystem();
     const openAvatar = ref<boolean>(false);
     const av = ref<string>('');
@@ -117,9 +112,6 @@ export default defineComponent({
       av,
       openAvatar,
       editAvatar,
-      updateTab(val: string) {
-        console.log(val);
-      },
     };
   },
 });

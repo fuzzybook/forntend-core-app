@@ -139,11 +139,12 @@
 
 <script lang="ts">
 // import ExampleComponent from 'components/CompositionComponent.vue';
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, PropType } from 'vue';
 import useUser from 'src/modules/useUser';
 import { QInput, QForm, QSelect, useQuasar } from 'quasar';
 
 import { countries } from 'src/config/countries';
+import { UserResponse } from 'src/grapql';
 
 type Callback = () => void;
 interface CountryOption {
@@ -154,7 +155,15 @@ interface CountryOption {
 export default defineComponent({
   name: 'ContactsData',
   components: { QForm },
-  setup() {
+  props: {
+    userRow: {
+      type: Object as PropType<UserResponse>,
+      required: false,
+      default: null,
+    },
+  },
+  emits: ['update'],
+  setup(props, { emit }) {
     const $q = useQuasar();
     const showError = ref<boolean>(false);
     const errorMessage = ref<string>('');
@@ -180,7 +189,14 @@ export default defineComponent({
 
     const countyOptions = ref<CountryOption[]>(countries);
 
+    const userData = ref<UserResponse>();
+
     onMounted(() => {
+      if (!props.userRow) {
+        userData.value = user.value as UserResponse;
+      } else {
+        userData.value = props.userRow;
+      }
       reset();
     });
 
@@ -190,14 +206,14 @@ export default defineComponent({
     };
 
     const reset = () => {
-      if (user.value?.profile) {
-        phoneNumber.value = user?.value?.profile?.phoneNumber || '';
-        mobileNumber.value = user?.value?.profile?.mobileNumber || '';
-        address1.value = user?.value?.profile?.address1 || '';
-        address2.value = user?.value?.profile?.address2 || '';
-        zip.value = user?.value?.profile?.zip || '';
-        city.value = user?.value?.profile?.city || '';
-        country.value = getOption(user?.value?.profile?.country || '');
+      if (userData.value?.profile) {
+        phoneNumber.value = userData?.value?.profile?.phoneNumber || '';
+        mobileNumber.value = userData?.value?.profile?.mobileNumber || '';
+        address1.value = userData?.value?.profile?.address1 || '';
+        address2.value = userData?.value?.profile?.address2 || '';
+        zip.value = userData?.value?.profile?.zip || '';
+        city.value = userData?.value?.profile?.city || '';
+        country.value = getOption(userData?.value?.profile?.country || '');
       }
       phoneNumberRef.value?.resetValidation();
       mobileNumberRef.value?.resetValidation();
@@ -215,7 +231,10 @@ export default defineComponent({
       if (!(await cityRef.value?.validate())) return;
       if (!(await countryRef.value?.validate())) return;
 
+      const userId = props.userRow ? props.userRow.id : null;
+
       const result = await saveUserContacts(
+        userId,
         phoneNumber.value,
         mobileNumber.value,
         address1.value,
@@ -224,7 +243,9 @@ export default defineComponent({
         city.value,
         country.value?.value || ''
       );
-      if (result === true) {
+
+      if (typeof result !== 'string') {
+        emit('update', result);
         $q.notify({
           color: 'positive',
           textColor: 'white',
@@ -247,7 +268,7 @@ export default defineComponent({
     };
 
     return {
-      user,
+      userData,
       showError,
       errorMessage,
       onEdit,

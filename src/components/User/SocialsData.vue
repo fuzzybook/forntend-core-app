@@ -50,11 +50,11 @@
           v-for="(v, k) in socials"
           :key="k"
         >
-          <div class="col-2">
+          <div class="col-12">
             <q-icon><img :src="`${siteConfig.url}icons/${v.icon}`" /></q-icon>
             <span class="q-mx-md">{{ v.label }}</span>
           </div>
-          <div class="col-6 socials-mask">
+          <div class="col-12 socials-mask">
             <q-input
               :ref="(el) => setItemRef(el)"
               type="text"

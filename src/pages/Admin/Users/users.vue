@@ -8,8 +8,13 @@
       @search="search"
       @action="action"
     />
-    <ChangeUserPassword v-model="openPasswordDialog" />
+    <ChangeUserPassword v-model="openPasswordDialog" :userRow="selectedRow" />
     <AvatarDialog v-model="openAvatar" :userId="userId" :adminMode="true" />
+    <ProfileDialog
+      v-model="openProfile"
+      :user="selectedRow"
+      @updateUser="updateUserData"
+    />
   </q-page>
 </template>
 
@@ -17,16 +22,20 @@
 import { defineComponent, ref, onMounted } from 'vue';
 import useAdmin from 'src/modules/useAdmin';
 import { useRouter } from 'vue-router';
-import useUser from 'src/modules/useUser';
 import DataTable from 'components/DataTable/Table.vue';
 import { usersSchema } from './usersSchema';
-import { ITableSchema, IAction } from 'src/components/DataTable/types';
-import { UserStatus } from 'src/grapql';
+import {
+  ITableSchema,
+  IAction,
+  ITableRow,
+} from 'src/components/DataTable/types';
+import { UserResponse, UserStatus } from 'src/grapql';
 import { useQuasar } from 'quasar';
 import { useI18n } from 'vue-i18n';
 import { getErrorUrl } from 'src/boot/graphql';
 import ChangeUserPassword from './changeUserPassword.vue';
 import AvatarDialog from 'src/components/Images/AvatarDialog.vue';
+import ProfileDialog from './ProfileDialog.vue';
 
 export default defineComponent({
   name: 'UsersPage',
@@ -34,6 +43,7 @@ export default defineComponent({
     DataTable,
     ChangeUserPassword,
     AvatarDialog,
+    ProfileDialog,
   },
   props: {
     title: {
@@ -46,13 +56,14 @@ export default defineComponent({
     // eslint-disable-next-line @typescript-eslint/unbound-method
     const { t } = useI18n();
     const $q = useQuasar();
-    const { user } = useUser();
     const router = useRouter();
-    const { getAllUsers, setStatus, setRoles, users } = useAdmin();
+    const { getAllUsers, setStatus, setRoles, updateUser, users } = useAdmin();
     const schema = ref<ITableSchema>(usersSchema as ITableSchema);
     const ready = ref(false);
     const openPasswordDialog = ref(false);
     const openAvatar = ref<boolean>(false);
+    const openProfile = ref<boolean>(false);
+    const selectedRow = ref<ITableRow>({});
     const userId = ref<string>('');
     let tableKey = 0;
 
@@ -78,12 +89,15 @@ export default defineComponent({
       const { action, row, data } = args;
       switch (action) {
         case 'avatar':
-          console.log(row);
           userId.value = row.id;
           openAvatar.value = true;
           break;
+        case 'profile':
+          selectedRow.value = row;
+          openProfile.value = true;
+          break;
         case 'changepassword':
-          console.log(row);
+          selectedRow.value = row;
           openPasswordDialog.value = true;
           break;
         case 'status':
@@ -128,6 +142,12 @@ export default defineComponent({
           break;
       }
     };
+
+    const updateUserData = (row: ITableRow) => {
+      selectedRow.value = row;
+      updateUser(row as unknown as UserResponse);
+    };
+
     return {
       users,
       schema,
@@ -135,8 +155,11 @@ export default defineComponent({
       openPasswordDialog,
       userId,
       openAvatar,
+      openProfile,
+      selectedRow,
       search,
       action,
+      updateUserData,
       tableKey,
     };
   },

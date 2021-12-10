@@ -282,14 +282,20 @@ export const SET_PREFERENCES = gql`
 `;
 
 export const NICKNAME_EXIST = gql`
-  query ($nickname: String!) {
-    nicknameExist(nickname: $nickname)
+  query ($nickname: String!, $userId: String!) {
+    nicknameExist(nickname: $nickname, userId: $userId)
+  }
+`;
+
+export const SET_PROFILE = gql`
+  mutation saveProfile($profile: UserProfileInput!) {
+    saveProfile(profile: $profile)
   }
 `;
 
 export const SET_USER_PROFILE = gql`
-  mutation saveProfile($profile: UserProfileInput!) {
-    saveProfile(profile: $profile)
+  mutation saveUserProfile($userId: String!, $profile: UserProfileInput!) {
+    saveUserProfile(userId: $userId, profile: $profile)
   }
 `;
 

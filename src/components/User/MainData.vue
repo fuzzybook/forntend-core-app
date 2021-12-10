@@ -121,18 +121,27 @@
 
 <script lang="ts">
 // import ExampleComponent from 'components/CompositionComponent.vue';
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, PropType } from 'vue';
 import useUser from 'src/modules/useUser';
 import { QInput, QForm, QSelect, useQuasar } from 'quasar';
+import { UserResponse } from 'src/grapql';
 
 export default defineComponent({
   name: 'MainData',
   components: { QForm },
-  setup() {
+  props: {
+    userRow: {
+      type: Object as PropType<UserResponse>,
+      required: false,
+      default: null,
+    },
+  },
+  emits: ['update'],
+  setup(props, { emit }) {
     const $q = useQuasar();
     const showError = ref<boolean>(false);
     const errorMessage = ref<string>('');
-    const { user, saveUserMainData, nicknameExist } = useUser();
+    const { user, saveMainData, saveUserMainData, nicknameExist } = useUser();
     const text = ref('');
     const onEdit = ref(false);
     const nicknameRef = ref<QInput>();
@@ -148,16 +157,23 @@ export default defineComponent({
     const titleSelect = ref('');
     const titleOptions = ref(['Mr', 'Mrs', 'Ms', 'Miss', 'Other']);
 
+    const userData = ref<UserResponse>();
+
     onMounted(() => {
+      if (!props.userRow) {
+        userData.value = user.value as UserResponse;
+      } else {
+        userData.value = props.userRow;
+      }
       reset();
     });
 
     const reset = () => {
-      if (user.value?.profile) {
-        nickname.value = user?.value?.profile?.nickname || '';
-        title.value = user?.value?.profile?.title || '';
-        firstname.value = user?.value?.profile?.firstName || '';
-        lastname.value = user?.value?.profile?.lastName || '';
+      if (userData.value?.profile) {
+        nickname.value = userData?.value?.profile?.nickname || '';
+        title.value = userData?.value?.profile?.title || '';
+        firstname.value = userData?.value?.profile?.firstName || '';
+        lastname.value = userData?.value?.profile?.lastName || '';
         if (titleOptions.value.includes(title.value) || !title.value) {
           titleSelect.value = title.value;
         } else {
@@ -184,14 +200,27 @@ export default defineComponent({
 
       if (!(await lastnameRef.value?.validate())) return;
 
-      const result = await saveUserMainData(
-        nickname.value,
-        _title,
-        firstname.value,
-        lastname.value
-      );
+      let result;
 
-      if (result === true) {
+      if (props.userRow) {
+        result = await saveUserMainData(
+          userData.value?.id || '',
+          nickname.value,
+          _title,
+          firstname.value,
+          lastname.value
+        );
+      } else {
+        result = await saveMainData(
+          nickname.value,
+          _title,
+          firstname.value,
+          lastname.value
+        );
+      }
+
+      if (typeof result !== 'string') {
+        emit('update', result);
         $q.notify({
           color: 'positive',
           textColor: 'white',
@@ -214,7 +243,8 @@ export default defineComponent({
     };
 
     const requiredRule = (val: string) => {
-      return nicknameExist(val);
+      const id = userData.value?.id;
+      return nicknameExist(val, id || '');
     };
 
     return {

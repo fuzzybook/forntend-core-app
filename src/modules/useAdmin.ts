@@ -43,6 +43,14 @@ export default function useAdmin() {
     }
   }
 
+  function updateUser(user: UserResponse) {
+    adminState.users.map((u) => {
+      if (u.id === user.id) {
+        u = user;
+      }
+    });
+  }
+
   async function setStatus(
     id: string,
     status: UserStatus
@@ -132,6 +140,7 @@ export default function useAdmin() {
   return {
     ...toRefs(adminState),
     getAllUsers,
+    updateUser,
     setStatus,
     setRoles,
     updatePassword,

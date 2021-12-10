@@ -1,19 +1,12 @@
 <template>
-  <q-dialog v-model="open" @hide="hide" @before-show="beforeShow">
-    <q-card class="my-card" style="min-width: 450px">
-      <q-card-section>
-        <div class="row justify-between items-center">
-          <div>
-            <div class="text-h6">{{ $t('userpassword.edit') }}</div>
-            <div class="text-subtitle2">{{ user?.email }}</div>
-          </div>
-          <q-space />
-          <div>
-            <q-btn icon="close" flat round dense v-close-popup />
-          </div>
-        </div>
-      </q-card-section>
-      <q-separator color="black" />
+  <q-dialog
+    v-model="open"
+    @hide="hide"
+    @before-show="beforeShow"
+    :maximized="$q.platform.is.mobile"
+  >
+    <q-card class="my-card" style="width: 450px">
+      <DialogToolbar title="userpassword.edit" :subTitle="userData?.email" />
       <q-card-section class="q-pa-md">
         <q-input
           label-color="primary"
@@ -71,7 +64,7 @@
           </template>
         </q-input>
       </q-card-section>
-      <q-separator color="black" />
+
       <q-card-actions align="right">
         <q-btn :disable="!valid" color="primary" icon="save" @click="save"
           >save</q-btn
@@ -82,22 +75,37 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, PropType, computed, onMounted } from 'vue';
+import {
+  defineComponent,
+  ref,
+  PropType,
+  computed,
+  onMounted,
+  watch,
+} from 'vue';
 import useAdmin from 'src/modules/useAdmin';
 import useUser from 'src/modules/useUser';
 import PasswordMeter from 'src/components/PasswordMeter/PasswordMeter.vue';
 import { passwordStrength } from 'src/components/PasswordMeter';
 import { QInput, useQuasar } from 'quasar';
+import DialogToolbar from 'components/DialogToolbar.vue';
+import { UserResponse } from 'src/grapql';
 
 export default defineComponent({
   name: 'ChangeUserPasswordDialog',
   components: {
     PasswordMeter,
+    DialogToolbar,
   },
   props: {
     modelValue: {
       type: Boolean as PropType<boolean>,
       required: true,
+    },
+    userRow: {
+      type: Object as PropType<UserResponse>,
+      required: false,
+      default: null,
     },
   },
   emits: ['update:modelValue', 'roles:saved'],
@@ -112,6 +120,8 @@ export default defineComponent({
     const password2 = ref<string>('');
     const isPwd = ref<boolean>(true);
     const dialogPasswordInfo = ref<boolean>(false);
+
+    const userData = ref<UserResponse>();
 
     onMounted(() => {
       registerPassword.value?.focus();
@@ -130,6 +140,14 @@ export default defineComponent({
       },
     });
 
+    watch(open, () => {
+      if (!props.userRow) {
+        userData.value = user.value as UserResponse;
+      } else {
+        userData.value = props.userRow;
+      }
+    });
+
     const valid = computed({
       get: () => {
         return score.value >= 3 && password.value == password2.value;
@@ -144,7 +162,7 @@ export default defineComponent({
     };
 
     const save = async () => {
-      const result = await updatePassword(user.value?.id, password.value);
+      const result = await updatePassword(userData.value?.id, password.value);
       if (result === true) {
         $q.notify({
           color: 'positive',
@@ -178,7 +196,7 @@ export default defineComponent({
     };
 
     return {
-      user,
+      userData,
       opened,
       open,
       valid,

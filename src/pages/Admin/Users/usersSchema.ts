@@ -47,7 +47,7 @@ export const usersSchema = {
         },
         {
           icon: 'badge',
-          label: 'users.rofile',
+          label: 'users.profile',
           color: 'primary',
           action: 'profile',
         },
