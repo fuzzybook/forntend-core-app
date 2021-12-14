@@ -91,6 +91,7 @@ export const GET_USERS = gql`
         idleTimeout
         useIdlePassword
       }
+      socials
     }
   }
 `;
@@ -202,6 +203,7 @@ export const LOGIN = gql`
           idleTimeout
           useIdlePassword
         }
+        socials
       }
     }
   }
@@ -270,6 +272,7 @@ export const RECOVERNEWPASSWORD = gql`
           idleTimeout
           useIdlePassword
         }
+        socials
       }
     }
   }
@@ -278,6 +281,15 @@ export const RECOVERNEWPASSWORD = gql`
 export const SET_PREFERENCES = gql`
   mutation savePreferences($preferences: UserPreferencesInput!) {
     savePreferences(preferences: $preferences)
+  }
+`;
+
+export const SET_USER_PREFERENCES = gql`
+  mutation saveUserPreferences(
+    $userId: String!
+    $preferences: UserPreferencesInput!
+  ) {
+    saveUserPreferences(userId: $userId, preferences: $preferences)
   }
 `;
 
@@ -299,9 +311,15 @@ export const SET_USER_PROFILE = gql`
   }
 `;
 
-export const SET_USER_SOCIALS = gql`
+export const SET_SOCIALS = gql`
   mutation saveSocials($socials: String!) {
     saveSocials(socials: $socials)
+  }
+`;
+
+export const SET_USER_SOCIALS = gql`
+  mutation saveUserSocials($userId: String!, $socials: String!) {
+    saveUserSocials(userId: $userId, socials: $socials)
   }
 `;
 

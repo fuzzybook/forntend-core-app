@@ -7,5 +7,12 @@
     "typeRoots": [
       "src/**/*.d.ts",
     ],
+    "moduleResolution": "node",
+    "strict": true,
+    "jsx": "preserve",
+    "sourceMap": true,
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "lib": ["esnext", "dom"]
   }
 }

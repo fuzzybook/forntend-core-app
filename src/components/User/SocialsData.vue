@@ -44,52 +44,27 @@
           ><span class="q-mx-sm">reset</span></q-btn
         >
       </div>
-      <div v-if="$q.platform.is.desktop">
-        <div
-          class="row items-center q-pa-sm"
-          v-for="(v, k) in socials"
-          :key="k"
-        >
-          <div class="col-12">
-            <q-icon><img :src="`${siteConfig.url}icons/${v.icon}`" /></q-icon>
-            <span class="q-mx-md">{{ v.label }}</span>
-          </div>
-          <div class="col-12 socials-mask">
-            <q-input
-              :ref="(el) => setItemRef(el)"
-              type="text"
-              v-model="socialsData[k].address"
-              :disable="!onEdit"
-            >
-              <template v-slot:prepend>
-                <span class="mask">{{ v.addressMask }}</span>
-              </template>
-            </q-input>
-          </div>
+
+      <div class="row items-center q-pa-sm" v-for="(v, k) in socials" :key="k">
+        <div class="col-12">
+          <q-icon><img :src="`${siteConfig.url}icons/${v.icon}`" /></q-icon>
+          <span class="q-mx-md">{{ v.label }}</span>
         </div>
-      </div>
-      <div v-else>
-        <div
-          class="row items-center q-pa-sm"
-          v-for="(v, k) in socials"
-          :key="k"
-        >
-          <div class="col-12">
-            <q-icon><img :src="`${siteConfig.url}icons/${v.icon}`" /></q-icon>
-            <span class="q-mx-md">{{ v.label }}</span>
-          </div>
-          <div class="col-12 socials-mask">
-            <q-input
-              :ref="(el) => setItemRef(el)"
-              type="text"
-              v-model="socialsData[k].address"
-              :disable="!onEdit"
-              stack-label
-              :label="v.addressMask"
-              dense
+        <div class="col-12 socials-mask">
+          <q-input
+            :ref="(el) => setItemRef(el)"
+            bottom-slots
+            type="text"
+            v-model="socialsData[k].address"
+            :disable="!onEdit"
+            @update:model-value="(v) => updateField(v, k)"
+          >
+            <template v-slot:hint
+              ><span class="mask text-blue-grey-7">{{
+                `${v.addressMask}${socialsData[k].address}`
+              }}</span></template
             >
-            </q-input>
-          </div>
+          </q-input>
         </div>
       </div>
     </q-form>
@@ -109,30 +84,37 @@
 
 <script lang="ts">
 // import ExampleComponent from 'components/CompositionComponent.vue';
-import { defineComponent, ref, onMounted, onBeforeUpdate } from 'vue';
-import useUser from 'src/modules/useUser';
+import { defineComponent, ref, onMounted, onBeforeUpdate, PropType } from 'vue';
+import useUser, { ISocialsInput } from 'src/modules/useUser';
 import { QForm, QInput, useQuasar } from 'quasar';
 import useSystem, { ISocials } from 'src/modules/useSystem';
 import { siteConfig } from 'src/APPLICATION/config/site';
-
-type ISocialInput = { address: string };
-type ISocialsInput = { [key: string]: ISocialInput };
+import { UserResponse } from 'src/grapql';
 
 export default defineComponent({
   name: 'SocialsData',
   components: { QForm },
-  setup() {
+  props: {
+    userRow: {
+      type: Object as PropType<UserResponse>,
+      required: false,
+      default: null,
+    },
+  },
+  emits: ['update'],
+  setup(props, { emit }) {
     const $q = useQuasar();
     const showError = ref<boolean>(false);
     const errorMessage = ref<string>('');
-    const { user, saveSocials } = useUser();
+    const { user, saveSocials, saveUserSocials } = useUser();
     const { getSocials } = useSystem();
     const socials = ref<ISocials>({});
-    const socialsData: ISocialsInput = {};
+    const socialsData = ref<ISocialsInput>({});
 
     const first = ref<QInput | null>();
 
     const onEdit = ref(false);
+    const userData = ref<UserResponse>(<UserResponse>{});
 
     const setItemRef = (el: QInput) => {
       if (el && !first.value) {
@@ -145,26 +127,42 @@ export default defineComponent({
     });
 
     onMounted(() => {
+      if (!props.userRow) {
+        userData.value = user.value as UserResponse;
+      } else {
+        userData.value = props.userRow;
+      }
       reset();
     });
 
     const reset = () => {
       socials.value = getSocials() as ISocials;
 
-      if (user.value?.socials) {
-        const s = user.value.socials as unknown as ISocialsInput;
+      if (userData.value?.socials) {
+        const s = userData.value.socials as unknown as ISocialsInput;
         for (const i in socials.value) {
-          socialsData[i] = s[i];
-          socialsData[i].address = i;
+          socialsData.value[i] = s[i];
+        }
+      } else {
+        for (const i in socials.value) {
+          socialsData.value[i] = { address: '' };
         }
       }
       onEdit.value = false;
     };
 
     const onSave = async () => {
-      console.log('onSave');
-      const result = await saveSocials(JSON.stringify(socialsData));
-      if (result === true) {
+      let result;
+
+      if (props.userRow) {
+        const id: string = userData.value?.id || '';
+        result = await saveUserSocials(id, socialsData.value);
+      } else {
+        result = await saveSocials(socialsData.value);
+      }
+
+      if (typeof result !== 'string') {
+        emit('update', result);
         $q.notify({
           color: 'positive',
           textColor: 'white',
@@ -186,15 +184,20 @@ export default defineComponent({
       }
     };
 
+    const updateField = (v: string, index: string) => {
+      socialsData.value[index].address = v;
+    };
+
     return {
       first,
-      user,
+      userData,
       showError,
       errorMessage,
       onEdit,
       socials,
       siteConfig,
       socialsData,
+      updateField,
       reset,
       onSave,
       setItemRef,

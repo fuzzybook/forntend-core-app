@@ -47,11 +47,11 @@
           </q-tab-panel>
 
           <q-tab-panel name="social">
-            <SocialsData />
+            <SocialsData :userRow="user" @update="updateSocials" />
           </q-tab-panel>
 
           <q-tab-panel name="preferences">
-            <PreferencesData />
+            <PreferencesData :userRow="user" @update="updatePreferences" />
           </q-tab-panel>
         </q-tab-panels>
       </q-card-section>
@@ -90,6 +90,7 @@ import MainData from 'src/components/User/MainData.vue';
 import ContactsData from 'src/components/User/ContactsData.vue';
 import SocialsData from 'src/components/User/SocialsData.vue';
 import PreferencesData from 'src/components/User/PreferencesData.vue';
+import { ISocialsInput } from 'src/modules/useUser';
 
 export default defineComponent({
   name: 'ProfileDialog',
@@ -168,6 +169,21 @@ export default defineComponent({
       emit('updateUser', props.user);
     };
 
+    const updateSocials = (result: ISocialsInput) => {
+      Object.keys(result).map((v) => {
+        if (
+          props.user &&
+          props.user.socials &&
+          props.user.socials.hasOwnProperty(v)
+        ) {
+          (props.user.socials as unknown as { [key: string]: string })[v] = (
+            result as unknown as { [key: string]: string }
+          )[v];
+        }
+      });
+      emit('updateUser', props.user);
+    };
+
     const updateProfile = (result: ProfileResponse) => {
       Object.keys(result).map((v) => {
         if (
@@ -178,6 +194,20 @@ export default defineComponent({
           (props.user.profile as unknown as { [key: string]: string })[v] = (
             result as unknown as { [key: string]: string }
           )[v];
+        }
+      });
+      emit('updateUser', props.user);
+    };
+
+    const updatePreferences = (result: ProfileResponse) => {
+      Object.keys(result).map((v) => {
+        if (
+          props.user &&
+          props.user.preferences &&
+          props.user.preferences.hasOwnProperty(v)
+        ) {
+          (props.user.preferences as unknown as { [key: string]: string })[v] =
+            (result as unknown as { [key: string]: string })[v];
         }
       });
       emit('updateUser', props.user);
@@ -196,6 +226,8 @@ export default defineComponent({
       save,
       updateUser,
       updateProfile,
+      updateSocials,
+      updatePreferences,
     };
   },
 });

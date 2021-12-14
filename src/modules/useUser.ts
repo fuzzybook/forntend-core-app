@@ -19,6 +19,8 @@ import {
   HEARTBEAT,
   SET_USER_SOCIALS,
   SET_PROFILE,
+  SET_SOCIALS,
+  SET_USER_PREFERENCES,
 } from 'src/graphql-gql/qwery&mutation';
 
 import {
@@ -26,7 +28,11 @@ import {
   UserResponse,
   UserProfileInput,
   ProfileResponse,
+  SocialDataResponse,
 } from 'src/grapql';
+
+export type ISocialInput = { address: string };
+export type ISocialsInput = { [key: string]: ISocialInput };
 
 interface UserState {
   user: UserResponse | null;
@@ -82,6 +88,10 @@ interface PasswordResponse {
 }
 
 interface UserPreferenceResponse {
+  saveUserPreferences?: LoginData;
+}
+
+interface PreferenceResponse {
   savePreferences?: LoginData;
 }
 
@@ -103,6 +113,14 @@ interface AliveResponse {
 
 interface HeartbeatResponse {
   heartbeat: boolean;
+}
+
+interface SaveUserSocialsResponse {
+  saveUserSocials?: boolean;
+}
+
+interface SaveSocialsResponse {
+  saveSocials?: boolean;
 }
 
 export default function useUser() {
@@ -398,20 +416,39 @@ export default function useUser() {
   }
 
   async function savePreferences(
+    userId: string | null,
     preferences: UserPreferencesInput
-  ): Promise<boolean | string> {
+  ): Promise<UserPreferencesInput | string> {
     try {
-      const { data } = await apolloClient.mutate<UserPreferenceResponse>({
-        mutation: SET_PREFERENCES,
-        variables: {
-          preferences: preferences,
-        },
-      });
-
-      if (data?.savePreferences && userState.user) {
-        userState.user.preferences = preferences;
+      if (userId) {
+        const { data } = await apolloClient.mutate<UserPreferenceResponse>({
+          mutation: SET_USER_PREFERENCES,
+          variables: {
+            userId,
+            preferences: preferences,
+          },
+        });
+        if (
+          data?.saveUserPreferences &&
+          userState.user &&
+          userState.user.id == userId
+        ) {
+          userState.user.preferences = preferences;
+        }
+        return preferences;
+      } else {
+        const { data } = await apolloClient.mutate<PreferenceResponse>({
+          mutation: SET_PREFERENCES,
+          variables: {
+            preferences: preferences,
+          },
+        });
+        if (data?.savePreferences && userState.user) {
+          userState.user.preferences = preferences;
+        }
+        return preferences;
       }
-      return true;
+      return 'error.savepreferences';
     } catch (error) {
       return error as string;
     }
@@ -584,17 +621,51 @@ export default function useUser() {
     }
   }
 
-  async function saveSocials(socials: string): Promise<boolean | string> {
+  async function saveUserSocials(
+    userId: string,
+    socials: ISocialsInput
+  ): Promise<ISocialsInput | string> {
     try {
-      const { data } = await apolloClient.mutate<UserPreferenceResponse>({
+      const { data } = await apolloClient.mutate<SaveUserSocialsResponse>({
         mutation: SET_USER_SOCIALS,
         variables: {
-          socials: socials,
+          userId,
+          socials: JSON.stringify(socials),
         },
       });
+      if (data?.saveUserSocials) {
+        if (userState.user?.id === userId) {
+          updateSocials(socials as unknown as SocialDataResponse);
+        }
+        return socials;
+      }
+      return 'error.savesocials';
+    } catch (error) {
+      return error as string;
+    }
+  }
 
-      console.log(data);
-      return true;
+  function updateSocials(socials: SocialDataResponse) {
+    if (userState.user) {
+      userState.user.socials = socials;
+    }
+  }
+
+  async function saveSocials(
+    socials: ISocialsInput
+  ): Promise<ISocialsInput | string> {
+    try {
+      const { data } = await apolloClient.mutate<SaveSocialsResponse>({
+        mutation: SET_SOCIALS,
+        variables: {
+          socials: JSON.stringify(socials),
+        },
+      });
+      if (data?.saveSocials) {
+        updateSocials(socials as unknown as SocialDataResponse);
+        return socials;
+      }
+      return 'error.savesocials';
     } catch (error) {
       return error as string;
     }
@@ -620,6 +691,7 @@ export default function useUser() {
     saveMainData,
     saveUserContacts,
     saveSocials,
+    saveUserSocials,
 
     saveUserMainData,
     nicknameExist,

@@ -77,7 +77,9 @@ export type Mutation = {
   savePreferences: Scalars['Boolean'];
   saveProfile: Scalars['Boolean'];
   saveSocials: Scalars['Boolean'];
+  saveUserPreferences: Scalars['Boolean'];
   saveUserProfile: Scalars['Boolean'];
+  saveUserSocials: Scalars['Boolean'];
   setNewPassword: LoginResponse;
   setRoles: UserResponse;
   setUserPassword: Scalars['Boolean'];
@@ -136,8 +138,20 @@ export type MutationSaveSocialsArgs = {
 };
 
 
+export type MutationSaveUserPreferencesArgs = {
+  preferences: UserPreferencesInput;
+  userId: Scalars['String'];
+};
+
+
 export type MutationSaveUserProfileArgs = {
   profile: UserProfileInput;
+  userId: Scalars['String'];
+};
+
+
+export type MutationSaveUserSocialsArgs = {
+  socials: Scalars['String'];
   userId: Scalars['String'];
 };
 

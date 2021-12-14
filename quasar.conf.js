@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /*
  * This file runs in a Node context (it's NOT transpiled by Babel), so use only
  * the ES6 features that are supported by your Node version. https://node.green/
@@ -9,6 +11,7 @@
 /* eslint-env node */
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { configure } = require('quasar/wrappers');
+const MonacoEditorPlugin = require('monaco-editor-webpack-plugin');
 
 module.exports = configure(function (ctx) {
   return {
@@ -72,6 +75,25 @@ module.exports = configure(function (ctx) {
       // "chain" is a webpack-chain object https://github.com/neutrinojs/webpack-chain
       chainWebpack(/* chain */) {
         //
+      },
+      extendWebpack(cfg) {
+        cfg.plugins.push(
+          new MonacoEditorPlugin({
+            // https://github.com/Microsoft/monaco-editor-webpack-plugin#options
+            // Include a subset of languages support
+            // Some language extensions like typescript are so huge that may impact build performance
+            // e.g. Build full languages support with webpack 4.0 takes over 80 seconds
+            // Languages are loaded on demand at runtime
+            languages: [
+              'typescript',
+              'javascript',
+              'html',
+              'mjml',
+              'css',
+              'json',
+            ],
+          })
+        );
       },
     },
 

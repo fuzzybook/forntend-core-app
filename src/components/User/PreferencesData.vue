@@ -70,11 +70,11 @@
 
 <script lang="ts">
 // import ExampleComponent from 'components/CompositionComponent.vue';
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, onMounted, PropType } from 'vue';
 import useUser from 'src/modules/useUser';
 import { QForm, useQuasar } from 'quasar';
 
-import { UserPreferencesInput } from 'src/grapql';
+import { UserPreferencesInput, UserResponse } from 'src/grapql';
 interface idleTimeoutOption {
   label: string;
   value: number;
@@ -83,7 +83,15 @@ interface idleTimeoutOption {
 export default defineComponent({
   name: 'PreferencesData',
   components: { QForm },
-  setup() {
+  props: {
+    userRow: {
+      type: Object as PropType<UserResponse>,
+      required: false,
+      default: null,
+    },
+  },
+  emits: ['update'],
+  setup(props, { emit }) {
     const $q = useQuasar();
     const { user, savePreferences } = useUser();
     const onEdit = ref(false);
@@ -119,13 +127,20 @@ export default defineComponent({
     const useIdlePassword = ref<boolean>(false);
     let userPreferences: UserPreferencesInput = <UserPreferencesInput>{};
 
+    const userData = ref<UserResponse>();
+
     onMounted(() => {
+      if (!props.userRow) {
+        userData.value = user.value as UserResponse;
+      } else {
+        userData.value = props.userRow;
+      }
       reset();
     });
 
     const reset = () => {
-      if (user.value?.preferences) {
-        userPreferences = user.value.preferences;
+      if (userData.value?.preferences) {
+        userPreferences = userData.value.preferences;
         delete (userPreferences as unknown as { [key: string]: string })
           .__typename;
 
@@ -145,8 +160,10 @@ export default defineComponent({
       userPreferences.useIdle = idleenabled.value;
       userPreferences.idleTimeout = idletimeout.value.value;
       userPreferences.useIdlePassword = useIdlePassword.value;
-      const result = await savePreferences(userPreferences);
-      if (result === true) {
+      const userId = props.userRow ? props.userRow.id : null;
+      const result = await savePreferences(userId, userPreferences);
+      if (typeof result !== 'string') {
+        emit('update', result);
         $q.notify({
           color: 'positive',
           textColor: 'white',
