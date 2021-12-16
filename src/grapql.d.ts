@@ -221,7 +221,7 @@ export type Query = {
   heartbeat: Scalars['Boolean'];
   me?: Maybe<UserResponse>;
   nicknameExist?: Maybe<Scalars['Boolean']>;
-  previewMJML: Scalars['String'];
+  previewMJML: TemplatesParsingResponse;
   roles: Scalars['RolesResponse'];
   rolesInfo: RolesInfo;
   system: System;
@@ -331,6 +331,12 @@ export type System = {
   rolesTree?: Maybe<AuthRolesResponse>;
   /** type SocialsResponse = { [key: string]: SocialResponse }; defined in client */
   socials: Scalars['SocialsResponse'];
+};
+
+export type TemplatesParsingResponse = {
+  __typename?: 'TemplatesParsingResponse';
+  error?: Maybe<Scalars['Boolean']>;
+  text: Scalars['String'];
 };
 
 export type TemplatesResponse = {

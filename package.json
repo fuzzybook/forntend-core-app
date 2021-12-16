@@ -8,7 +8,7 @@
   "scripts": {
     "lint": "eslint --ext .js,.ts,.vue ./",
     "test": "echo \"No test specified\" && exit 0",
-    "updateApi": "node tasks/getApi.js &&  npx prettier --write \"./src/generatedApi/*.{ts,js}\" "
+    "updateApi": ""
   },
   "dependencies": {
     "@apollo/client": "^3.4.10",

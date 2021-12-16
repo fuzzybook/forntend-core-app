@@ -328,3 +328,12 @@ export const UPDATE_USER_PASSWORD = gql`
     setUserPassword(data: $data)
   }
 `;
+
+export const PREVIEW_MJML = gql`
+  query ($template: String!) {
+    previewMJML(template: $template) {
+      text
+      error
+    }
+  }
+`;

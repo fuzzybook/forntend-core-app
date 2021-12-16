@@ -5,8 +5,9 @@ import {
   AuthRolesResponse,
   RoleResponse,
   SocialResponse,
+  TemplatesParsingResponse,
 } from 'src/grapql';
-import { GET_SYSTEM } from 'src/graphql-gql/qwery&mutation';
+import { GET_SYSTEM, PREVIEW_MJML } from 'src/graphql-gql/qwery&mutation';
 import { Idle } from 'src/libs/idle/idle';
 import useUser from 'src/modules/useUser';
 
@@ -269,6 +270,29 @@ export default function useSystem() {
 
   // end idle
 
+  const renderMjml = async (template: string): Promise<string> => {
+    try {
+      const data = await apolloClient.query<TemplatesParsingResponse>({
+        query: PREVIEW_MJML,
+        fetchPolicy: 'network-only',
+        variables: {
+          template,
+        },
+      });
+      console.log(data);
+      return '';
+    } catch (error) {
+      let message = (error as Error).message;
+      if (message.indexOf('ValidationError:')) {
+        message = message.replace('GraphQL error: ', '');
+        message = message.replace(/\n/g, '<br>');
+        message = message.replace(/of([\s\S]*?)Element/g, '');
+        return message;
+      }
+      return (error as Error).message;
+    }
+  };
+
   return {
     ...toRefs(state),
     //idle
@@ -291,5 +315,7 @@ export default function useSystem() {
     selectRole,
     getTree,
     resetRolesTree,
+    //
+    renderMjml,
   };
 }
