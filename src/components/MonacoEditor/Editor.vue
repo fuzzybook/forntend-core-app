@@ -14,23 +14,39 @@ import {
   onUnmounted,
   watch,
   inject,
+  PropType,
+  computed,
 } from 'vue';
 import useUser from 'src/modules/useUser';
-import useSystem from 'src/modules/useSystem';
+import useSystem, { MJMLError } from 'src/modules/useSystem';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
-import { debounce } from 'quasar';
 
 export default defineComponent({
   name: 'MonacoEditor',
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   components: {},
-  setup() {
+  props: {
+    modelValue: {
+      type: String as PropType<string>,
+      required: true,
+    },
+  },
+  emits: ['update:modelValue'],
+  setup(props, { emit }) {
     const { user, isLogged } = useUser();
     const { isIdle, renderMjml } = useSystem();
-    const code = ref('const noop = () => {}');
     const container = ref<HTMLDivElement>();
     let editor: monaco.editor.IStandaloneCodeEditor;
-    const doTest = inject('doTest') as (test: string) => void;
+    const renderHtml = inject('renderHtml') as (test: string) => void;
+
+    const code = computed({
+      get: () => {
+        return props.modelValue;
+      },
+      set: (value) => {
+        emit('update:modelValue', value);
+      },
+    });
 
     const test = (p: string) => {
       alert(
@@ -39,24 +55,89 @@ export default defineComponent({
       );
     };
 
+    /*
+
+    find next tag end
+
+    const findTagEnd = (
+      line: number,
+      start: number,
+      model: monaco.editor.ITextModel
+    ): { endPos: number; endLine: number } => {
+      let myLine = line;
+      let myStart = start;
+      const find = (myLine: number, myStart: number) => {
+        var text = model.getLineContent(myLine);
+        let nextPos = text.substr(myStart).indexOf('>');
+        if (nextPos === -1) {
+          console.log('not found coser tag');
+          return false;
+        } else {
+          return nextPos;
+        }
+      };
+      let p: number | false = false;
+      let maxLoops = 0;
+      do {
+        p = find(myLine, myStart);
+        if (!p) {
+          myLine++;
+          myStart = 0;
+          if (maxLoops > 10) p = 255;
+        }
+      } while (!p);
+      return { endPos: p ? p : 255, endLine: myLine };
+    }; */
+
+    const parseErrors = (errors: MJMLError[]) => {
+      const model = editor.getModel();
+      const markers: monaco.editor.IMarkerData[] = [];
+      if (model) {
+        errors.map((e) => {
+          var line = model.getLineContent(parseInt(e.line));
+          e.startLine = parseInt(e.line);
+          e.startPos = line.indexOf(e.tagName) + 1;
+          // const next = findTagEnd(e.startLine, e.startPos, model);
+          e.endPos = e.startPos + e.tagName.length;
+          e.endLine = e.startLine;
+
+          markers.push({
+            severity: monaco.MarkerSeverity.Error,
+            startLineNumber: e.startLine,
+            startColumn: e.startPos,
+            endLineNumber: e.endLine,
+            endColumn: e.endPos,
+            message: e.message,
+          });
+        });
+        monaco.editor.setModelMarkers(model, 'mySpecialLanguage', markers);
+      }
+      console.log(errors);
+    };
+
+    const getValue = () => {
+      return editor.getValue();
+    };
+
     onMounted(() => {
       console.log(monaco);
       const interval = setInterval(() => {
         if (container.value) {
           clearInterval(interval);
-          console.log(container.value);
-          // VueComponent{}
           editor = monaco.editor.create(container.value, {
             language: 'html',
             value: '',
 
             theme: 'vs-dark',
           });
-          editor.setValue(code.value);
-          editor.onDidChangeModelContent(function (e) {
-            void renderMjml(editor.getValue()).then((data: string) => {
-              doTest(data);
-            });
+          editor.setValue(code.value || '');
+          editor.onDidChangeModelContent(async () => {
+            const { html, errors } = await renderMjml(editor.getValue());
+            console.log(errors);
+            if (errors) {
+              parseErrors(errors);
+            }
+            renderHtml(html);
           });
           editor.addAction({
             id: 'myPaste',
@@ -75,25 +156,26 @@ export default defineComponent({
       editor?.dispose();
     });
 
-    const onResize = (size: unknown) => {
-      console.log(size);
-      editor.layout();
+    const onResize = () => {
+      if (editor) editor.layout();
     };
 
-    watch(code, (value) => {
-      console.log(value);
-      debounce(async () => {
-        await renderMjml(value);
-      }, 1000);
-    });
+    watch(
+      () => code.value,
+      (val) => {
+        editor.setValue(val);
+      }
+    );
 
     return {
       onResize,
       container,
-      code,
+
       user,
       isLogged,
       isIdle,
+
+      getValue,
     };
   },
 });

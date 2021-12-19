@@ -333,7 +333,25 @@ export const PREVIEW_MJML = gql`
   query ($template: String!) {
     previewMJML(template: $template) {
       text
-      error
+      errors
     }
+  }
+`;
+
+export const TRANSACTIONAL_MAILS = gql`
+  query {
+    transctionalMails
+  }
+`;
+
+export const GET_TRANSACTIONAL_MAIL = gql`
+  query ($template: String!) {
+    getTransctionalMail(template: $template)
+  }
+`;
+
+export const SAVE_TRANSACTIONAL_MAIL = gql`
+  mutation saveTransctionalMail($template: String!, $name: String!) {
+    saveTransctionalMail(template: $template, name: $name)
   }
 `;

@@ -7,7 +7,13 @@ import {
   SocialResponse,
   TemplatesParsingResponse,
 } from 'src/grapql';
-import { GET_SYSTEM, PREVIEW_MJML } from 'src/graphql-gql/qwery&mutation';
+import {
+  GET_SYSTEM,
+  GET_TRANSACTIONAL_MAIL,
+  PREVIEW_MJML,
+  SAVE_TRANSACTIONAL_MAIL,
+  TRANSACTIONAL_MAILS,
+} from 'src/graphql-gql/qwery&mutation';
 import { Idle } from 'src/libs/idle/idle';
 import useUser from 'src/modules/useUser';
 
@@ -29,11 +35,47 @@ interface ISystem {
   system: ISystem;
 }
 
+interface ITemplatesParsingResponse {
+  previewMJML: TemplatesParsingResponse;
+}
+
+export interface MJMLError {
+  line: string;
+  tagName: string;
+  message: string;
+  formattedMessage: string;
+  startLine?: number;
+  startPos?: number;
+  endLine?: number;
+  endPos?: number;
+}
+
+export interface IMJMLParingData {
+  html: string;
+  errors: MJMLError[] | null;
+}
+
 const state = reactive<SystemState>({
   leftDrawerOpen: false,
   system: <ISystem>{},
   isIdle: false,
 });
+
+interface ITransactionalMailsResponse {
+  transctionalMails: string;
+}
+
+export interface TransactionalMailTemplate {
+  [key: string]: { type: string; fileName: string };
+}
+
+export interface TransactionalMailConstants {
+  [key: string]: string;
+}
+export interface TransactionalMail {
+  constants: TransactionalMailConstants;
+  templates: TransactionalMailTemplate;
+}
 
 export default function useSystem() {
   const { user, isLogged, isSuperadmin } = useUser();
@@ -44,6 +86,54 @@ export default function useSystem() {
 
   function setLeftDrawer(value: boolean) {
     state.leftDrawerOpen = value;
+  }
+
+  async function transctionalMails(): Promise<TransactionalMail | string> {
+    try {
+      const {
+        data: { transctionalMails },
+      } = await apolloClient.query<ITransactionalMailsResponse>({
+        query: TRANSACTIONAL_MAILS,
+      });
+      return JSON.parse(transctionalMails) as TransactionalMail;
+    } catch (error) {
+      return (error as Error).message;
+    }
+  }
+
+  async function getTransctionalMail(template: string): Promise<string> {
+    try {
+      const {
+        data: { getTransctionalMail },
+      } = await apolloClient.query<{ getTransctionalMail: string }>({
+        query: GET_TRANSACTIONAL_MAIL,
+        fetchPolicy: 'network-only',
+        variables: {
+          template,
+        },
+      });
+      return getTransctionalMail;
+    } catch (error) {
+      return (error as Error).message;
+    }
+  }
+
+  async function saveTransctionalMail(
+    template: string,
+    name: string
+  ): Promise<boolean | string> {
+    try {
+      const { data } = await apolloClient.mutate<boolean>({
+        mutation: SAVE_TRANSACTIONAL_MAIL,
+        variables: {
+          template,
+          name,
+        },
+      });
+      return data as boolean;
+    } catch (error) {
+      return error as string;
+    }
   }
 
   function getRoles(): IRoles | string {
@@ -270,26 +360,24 @@ export default function useSystem() {
 
   // end idle
 
-  const renderMjml = async (template: string): Promise<string> => {
+  const renderMjml = async (template: string): Promise<IMJMLParingData> => {
     try {
-      const data = await apolloClient.query<TemplatesParsingResponse>({
+      const { data } = await apolloClient.query<ITemplatesParsingResponse>({
         query: PREVIEW_MJML,
         fetchPolicy: 'network-only',
         variables: {
           template,
         },
       });
-      console.log(data);
-      return '';
-    } catch (error) {
-      let message = (error as Error).message;
-      if (message.indexOf('ValidationError:')) {
-        message = message.replace('GraphQL error: ', '');
-        message = message.replace(/\n/g, '<br>');
-        message = message.replace(/of([\s\S]*?)Element/g, '');
-        return message;
+      if (data.previewMJML.errors) {
+        const errors: MJMLError[] = JSON.parse(
+          data.previewMJML.errors
+        ) as MJMLError[];
+        return { html: data.previewMJML.text, errors: errors };
       }
-      return (error as Error).message;
+      return { html: data.previewMJML.text, errors: null };
+    } catch (error) {
+      return { html: (error as Error).message, errors: null };
     }
   };
 
@@ -317,5 +405,8 @@ export default function useSystem() {
     resetRolesTree,
     //
     renderMjml,
+    transctionalMails,
+    getTransctionalMail,
+    saveTransctionalMail,
   };
 }

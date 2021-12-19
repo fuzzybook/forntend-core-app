@@ -218,6 +218,7 @@ export type Query = {
   avatar: Scalars['String'];
   enums: Enums;
   getTemplate: Scalars['String'];
+  getTransctionalMail: Scalars['String'];
   heartbeat: Scalars['Boolean'];
   me?: Maybe<UserResponse>;
   nicknameExist?: Maybe<Scalars['Boolean']>;
@@ -225,8 +226,8 @@ export type Query = {
   roles: Scalars['RolesResponse'];
   rolesInfo: RolesInfo;
   system: System;
-  templatesDirectory: TemplatesResponse;
   templatesTree: Scalars['String'];
+  transctionalMails: Scalars['String'];
   user: UserResponse;
   userDataFilesDirectory: FilesDirectoryResponse;
   userDataGetFile: Scalars['String'];
@@ -244,6 +245,11 @@ export type QueryGetTemplateArgs = {
 };
 
 
+export type QueryGetTransctionalMailArgs = {
+  template: Scalars['String'];
+};
+
+
 export type QueryNicknameExistArgs = {
   nickname: Scalars['String'];
   userId: Scalars['String'];
@@ -252,11 +258,6 @@ export type QueryNicknameExistArgs = {
 
 export type QueryPreviewMjmlArgs = {
   template: Scalars['String'];
-};
-
-
-export type QueryTemplatesDirectoryArgs = {
-  path: Scalars['String'];
 };
 
 
@@ -335,15 +336,8 @@ export type System = {
 
 export type TemplatesParsingResponse = {
   __typename?: 'TemplatesParsingResponse';
-  error?: Maybe<Scalars['Boolean']>;
+  errors?: Maybe<Scalars['String']>;
   text: Scalars['String'];
-};
-
-export type TemplatesResponse = {
-  __typename?: 'TemplatesResponse';
-  file: Scalars['String'];
-  parent: Scalars['String'];
-  path: Scalars['String'];
 };
 
 export type UpdateUserInput = {
