@@ -5,8 +5,14 @@
         class="q-px-md"
         dense
         color="primary"
-        :label="selectedTemplate ? selectedTemplate : 'Select template'"
-      >
+        :icon="
+          templates && selectedTemplate
+            ? templates[selectedTemplate].icon
+            : 'help'
+        "
+        ><span class="q-px-md">{{
+          selectedTemplate ? selectedTemplate : 'Select template'
+        }}</span>
         <q-menu>
           <q-list v-if="templates" style="min-width: 200px">
             <q-item
@@ -16,7 +22,11 @@
               v-close-popup
               @click="selectTemplate(k)"
             >
-              <q-item-section>{{ k }}</q-item-section>
+              <q-item-section
+                ><div class="row">
+                  <q-icon class="q-mr-md" :name="v.icon" />{{ k }}
+                </div></q-item-section
+              >
             </q-item>
           </q-list>
         </q-menu>
@@ -26,15 +36,20 @@
         dense
         icon="save"
         color="primary"
-        label="save"
         @click="save"
-      />
+        ><span class="q-px-md">save</span></q-btn
+      >
       <q-space />
     </q-toolbar>
     <q-splitter v-model="splitterModel" class="splitter">
       <template v-slot:before>
-        <div class="fit container">
-          <MonacoEditor ref="editor" v-model="code" />
+        <div v-if="selectedTemplate" class="fit container">
+          <MonacoEditor
+            ref="editor"
+            v-model="code"
+            :templateType="templates[selectedTemplate].type"
+            :selectedTemplate="selectedTemplate"
+          />
         </div>
       </template>
 
@@ -105,8 +120,8 @@ export default defineComponent({
         templates.value = t.templates;
         console.log(t);
         templatesOptions.value = Object.keys(t.templates);
-        selectedTemplate.value = templatesOptions.value[0];
-        code.value = await getTransctionalMail(selectedTemplate.value);
+        //selectedTemplate.value = templatesOptions.value[0];
+        //code.value = await getTransctionalMail(selectedTemplate.value);
       }
       if (render.value) {
         window = render.value.contentWindow;

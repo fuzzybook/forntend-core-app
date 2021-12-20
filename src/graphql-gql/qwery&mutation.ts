@@ -330,8 +330,8 @@ export const UPDATE_USER_PASSWORD = gql`
 `;
 
 export const PREVIEW_MJML = gql`
-  query ($template: String!) {
-    previewMJML(template: $template) {
+  query ($template: String!, $type: String!) {
+    previewMJML(template: $template, type: $type) {
       text
       errors
     }

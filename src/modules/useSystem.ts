@@ -65,8 +65,18 @@ interface ITransactionalMailsResponse {
   transctionalMails: string;
 }
 
+export interface TransactionalMailTemplateVar {
+  var: string;
+  description?: string;
+}
+
 export interface TransactionalMailTemplate {
-  [key: string]: { type: string; fileName: string };
+  [key: string]: {
+    type: string;
+    fileName: string;
+    icon: string;
+    vars?: TransactionalMailTemplateVar[];
+  };
 }
 
 export interface TransactionalMailConstants {
@@ -360,13 +370,17 @@ export default function useSystem() {
 
   // end idle
 
-  const renderMjml = async (template: string): Promise<IMJMLParingData> => {
+  const renderMjml = async (
+    template: string,
+    type: string
+  ): Promise<IMJMLParingData> => {
     try {
       const { data } = await apolloClient.query<ITemplatesParsingResponse>({
         query: PREVIEW_MJML,
         fetchPolicy: 'network-only',
         variables: {
           template,
+          type,
         },
       });
       if (data.previewMJML.errors) {

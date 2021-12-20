@@ -77,6 +77,7 @@ export type Mutation = {
   savePreferences: Scalars['Boolean'];
   saveProfile: Scalars['Boolean'];
   saveSocials: Scalars['Boolean'];
+  saveTransctionalMail: Scalars['Boolean'];
   saveUserPreferences: Scalars['Boolean'];
   saveUserProfile: Scalars['Boolean'];
   saveUserSocials: Scalars['Boolean'];
@@ -135,6 +136,12 @@ export type MutationSaveProfileArgs = {
 
 export type MutationSaveSocialsArgs = {
   socials: Scalars['String'];
+};
+
+
+export type MutationSaveTransctionalMailArgs = {
+  name: Scalars['String'];
+  template: Scalars['String'];
 };
 
 
@@ -258,6 +265,7 @@ export type QueryNicknameExistArgs = {
 
 export type QueryPreviewMjmlArgs = {
   template: Scalars['String'];
+  type: Scalars['String'];
 };
 
 
