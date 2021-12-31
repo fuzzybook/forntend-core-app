@@ -78,6 +78,7 @@ export type Mutation = {
   saveProfile: Scalars['Boolean'];
   saveSocials: Scalars['Boolean'];
   saveTransctionalMail: Scalars['Boolean'];
+  saveTransctionalMailImage: Scalars['Boolean'];
   saveUserPreferences: Scalars['Boolean'];
   saveUserProfile: Scalars['Boolean'];
   saveUserSocials: Scalars['Boolean'];
@@ -142,6 +143,12 @@ export type MutationSaveSocialsArgs = {
 export type MutationSaveTransctionalMailArgs = {
   name: Scalars['String'];
   template: Scalars['String'];
+};
+
+
+export type MutationSaveTransctionalMailImageArgs = {
+  id: Scalars['String'];
+  image: Scalars['String'];
 };
 
 

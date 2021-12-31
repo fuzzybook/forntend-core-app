@@ -344,6 +344,12 @@ export const TRANSACTIONAL_MAILS = gql`
   }
 `;
 
+export const GET_TRANSACTIONAL_THUMBS = gql`
+  query {
+    getTransctionalImages
+  }
+`;
+
 export const GET_TRANSACTIONAL_MAIL = gql`
   query ($template: String!) {
     getTransctionalMail(template: $template)
@@ -353,5 +359,11 @@ export const GET_TRANSACTIONAL_MAIL = gql`
 export const SAVE_TRANSACTIONAL_MAIL = gql`
   mutation saveTransctionalMail($template: String!, $name: String!) {
     saveTransctionalMail(template: $template, name: $name)
+  }
+`;
+
+export const SAVE_TRANSACTIONAL_IMAGE = gql`
+  mutation saveTransctionalMailImage($image: String!, $id: String!) {
+    saveTransctionalMailImage(image: $image, id: $id)
   }
 `;

@@ -10,7 +10,9 @@ import {
 import {
   GET_SYSTEM,
   GET_TRANSACTIONAL_MAIL,
+  GET_TRANSACTIONAL_THUMBS,
   PREVIEW_MJML,
+  SAVE_TRANSACTIONAL_IMAGE,
   SAVE_TRANSACTIONAL_MAIL,
   TRANSACTIONAL_MAILS,
 } from 'src/graphql-gql/qwery&mutation';
@@ -128,6 +130,20 @@ export default function useSystem() {
     }
   }
 
+  async function getTransctionalThumbs(): Promise<string[] | Error> {
+    try {
+      const {
+        data: { getTransctionalImages },
+      } = await apolloClient.query<{ getTransctionalImages: string[] }>({
+        query: GET_TRANSACTIONAL_THUMBS,
+        fetchPolicy: 'network-only',
+      });
+      return getTransctionalImages;
+    } catch (error) {
+      return error as Error;
+    }
+  }
+
   async function saveTransctionalMail(
     template: string,
     name: string
@@ -138,6 +154,24 @@ export default function useSystem() {
         variables: {
           template,
           name,
+        },
+      });
+      return data as boolean;
+    } catch (error) {
+      return error as string;
+    }
+  }
+
+  async function saveTransctionalImage(
+    image: string,
+    id: string
+  ): Promise<boolean | string> {
+    try {
+      const { data } = await apolloClient.mutate<boolean>({
+        mutation: SAVE_TRANSACTIONAL_IMAGE,
+        variables: {
+          image,
+          id,
         },
       });
       return data as boolean;
@@ -422,5 +456,7 @@ export default function useSystem() {
     transctionalMails,
     getTransctionalMail,
     saveTransctionalMail,
+    saveTransctionalImage,
+    getTransctionalThumbs,
   };
 }

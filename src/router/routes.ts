@@ -61,6 +61,10 @@ const routes: RouteRecordRaw[] = [
         component: () => import('src/pages/Admin/Users/users.vue'),
         meta: { requiresAuth: ['USERSADMIN'] },
       },
+      {
+        path: 'transactionalmails',
+        component: () => import('src/pages/Admin/TransactionalMails/Index.vue'),
+      },
     ],
   },
   {

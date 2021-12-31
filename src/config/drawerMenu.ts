@@ -43,6 +43,12 @@ export const drawerMenu = reactive<ConfigState>({
         to: '/admin/users',
         children: [],
       },
+      {
+        title: 'Transactional Mails',
+        icon: 'manage_accounts',
+        to: '/admin/transactionalmails',
+        children: [],
+      },
     ],
   },
 });

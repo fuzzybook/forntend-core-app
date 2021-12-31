@@ -30,7 +30,7 @@
   <q-dialog v-model="dialogVars" persistent>
     <q-card style="min-width: 450px">
       <q-card-section class="row items-center">
-        <span class="q-ml-sm text-h6">Insert Vars</span>
+        <span class="q-ml-sm text-h5">Insert Vars</span>
       </q-card-section>
 
       <q-card-section class="row items-center">
@@ -40,7 +40,7 @@
             :key="k"
             clickable
             v-close-popup
-            @click="insertThisConstant(v.var)"
+            @click="insertThisVar(v.var)"
           >
             <q-item-section
               ><div class="row">
@@ -52,6 +52,9 @@
             >
           </q-item>
         </q-list>
+        <div v-else class="fit row justify-center">
+          <b>No variables defined for this template</b>
+        </div>
       </q-card-section>
 
       <q-card-actions align="right">
@@ -64,6 +67,7 @@
     <div ref="container" class="fit"></div>
     <q-resize-observer @resize="onResize" />
   </div>
+  <ImagesDialog v-model="openImagesDialog" @selected="newImage" />
 </template>
 
 <script lang="ts">
@@ -84,11 +88,14 @@ import useSystem, {
   TransactionalMailTemplateVar,
 } from 'src/modules/useSystem';
 import * as monaco from 'monaco-editor/esm/vs/editor/editor.api';
+import ImagesDialog from 'components/Images/ImagesDialog.vue';
 
 export default defineComponent({
   name: 'MonacoEditor',
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-  components: {},
+  components: {
+    ImagesDialog,
+  },
   props: {
     modelValue: {
       type: String as PropType<string>,
@@ -114,6 +121,7 @@ export default defineComponent({
     const renderHtml = inject('renderHtml') as (test: string) => void;
     const constants = ref();
     const vars = ref<TransactionalMailTemplateVar[]>();
+    const openImagesDialog = ref(false);
 
     const code = computed({
       get: () => {
@@ -137,7 +145,7 @@ export default defineComponent({
       var op = <monaco.editor.IIdentifiedSingleEditOperation>{
         identifier: id,
         range: selection,
-        text: `<%= constant:${c} %>`,
+        text: `<%= var:${c} %>`,
         forceMoveMarkers: true,
       };
       editor.executeEdits('my-source', [op]);
@@ -148,18 +156,19 @@ export default defineComponent({
     };
 
     const insertThisConstant = (c: string) => {
-      console.log(c);
-      //editor.trigger('keyboard', 'type', { text: c });
-
       var selection = editor.getSelection();
       var id = { major: 1, minor: 1 };
       var op = <monaco.editor.IIdentifiedSingleEditOperation>{
         identifier: id,
         range: selection,
-        text: `<%= var:${c} %>`,
+        text: `<%= constant:${c} %>`,
         forceMoveMarkers: true,
       };
       editor.executeEdits('my-source', [op]);
+    };
+
+    const insertImage = () => {
+      openImagesDialog.value = true;
     };
 
     /*
@@ -226,6 +235,33 @@ export default defineComponent({
       return editor.getValue();
     };
 
+    const testVars = (): {
+      error: boolean;
+      vars: { [key: string]: boolean };
+    } => {
+      console.log('editor test vars', vars);
+      const t = [...editor.getValue().matchAll(/\<%= var:([^%\>]+)%\>/gim)];
+      let ta: string[] = [];
+      t.forEach((f) => {
+        ta.push(f[1].trim());
+      });
+      ta = [...new Set(ta)];
+      const va: { [key: string]: boolean } = {};
+      vars.value?.forEach((v) => {
+        va[v.var] = false;
+      });
+      let found = vars.value?.length || 0;
+      vars.value?.forEach((v) => {
+        ta.forEach((f) => {
+          if (f === v.var) {
+            found -= 1;
+            va[v.var] = true;
+          }
+        });
+      });
+      return { error: found > 0, vars: va };
+    };
+
     const doRenderMjml = async (html: string, type: string) => {
       const result = await renderMjml(html, type);
       if (result.errors) {
@@ -235,8 +271,20 @@ export default defineComponent({
       return result;
     };
 
+    const isCursorInsideSrc = (range: monaco.Selection): boolean => {
+      const model = editor.getModel();
+      if (model) {
+        var line = model.getLineContent(range.startLineNumber);
+        const r = new RegExp(/src="([^"]+)"/);
+        console.log(r.exec(line));
+        return r.exec(line) !== null ? true : false;
+      }
+      return false;
+    };
+
     onMounted(async () => {
       const t = await transctionalMails();
+
       if (typeof t !== 'string') {
         constants.value = t.constants;
         vars.value = t.templates[props.selectedTemplate].vars;
@@ -250,8 +298,25 @@ export default defineComponent({
             theme: 'vs-dark',
           });
 
+          const insertAllowed = editor.createContextKey('insertAllowed', true);
+
           editor.onDidChangeModelContent(async () => {
             await doRenderMjml(editor.getValue(), props.templateType);
+          });
+
+          editor.onContextMenu(function (e: monaco.editor.IEditorMouseEvent) {
+            const model = editor.getModel();
+            if (model) {
+              const range = editor.getSelection();
+              if (range && range.startColumn == range.endColumn) {
+                insertAllowed.set(true);
+              } else {
+                insertAllowed.set(false);
+                if (range) insertAllowed.set(isCursorInsideSrc(range));
+              }
+
+              // console.log(editor.getModel().getLineContent(e.target.position.lineNumber))
+            }
           });
 
           editor.addAction({
@@ -272,10 +337,33 @@ export default defineComponent({
             },
           });
 
+          editor.addAction({
+            id: 'myInsertImages',
+            label: 'Insert Image',
+            precondition: 'insertAllowed',
+            contextMenuGroupId: '9_cutcopypaste',
+            run: () => {
+              insertImage();
+            },
+          });
+
           editor.setValue(code.value || '');
         }
       }, 50);
     });
+
+    const newImage = (src: string) => {
+      console.log(src);
+      var selection = editor.getSelection();
+      var id = { major: 1, minor: 1 };
+      var op = <monaco.editor.IIdentifiedSingleEditOperation>{
+        identifier: id,
+        range: selection,
+        text: `<mj-image src="${src.replace('.thumb', '')}" />`,
+        forceMoveMarkers: true,
+      };
+      editor.executeEdits('my-source', [op]);
+    };
 
     onUnmounted(() => {
       editor?.dispose();
@@ -294,6 +382,19 @@ export default defineComponent({
       }
     );
 
+    watch(
+      () => props.selectedTemplate,
+      async (val) => {
+        if (editor) {
+          const t = await transctionalMails();
+          if (typeof t !== 'string') {
+            constants.value = t.constants;
+            vars.value = t.templates[val].vars;
+          }
+        }
+      }
+    );
+
     return {
       onResize,
       container,
@@ -307,6 +408,9 @@ export default defineComponent({
       getValue,
       insertThisConstant,
       insertThisVar,
+      openImagesDialog,
+      newImage,
+      testVars,
     };
   },
 });
