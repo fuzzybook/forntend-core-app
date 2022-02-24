@@ -108,8 +108,8 @@ export default defineComponent({
           title: 'Error',
           message: t(error),
           persistent: true,
-        }).onOk(async () => {
-          await router.push('/');
+        }).onOk(() => {
+          void router.push('/')
         });
       }
     }

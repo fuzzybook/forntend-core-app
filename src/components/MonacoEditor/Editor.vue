@@ -304,20 +304,21 @@ export default defineComponent({
             await doRenderMjml(editor.getValue(), props.templateType);
           });
 
-          editor.onContextMenu(function (e: monaco.editor.IEditorMouseEvent) {
-            const model = editor.getModel();
-            if (model) {
-              const range = editor.getSelection();
-              if (range && range.startColumn == range.endColumn) {
-                insertAllowed.set(true);
-              } else {
-                insertAllowed.set(false);
-                if (range) insertAllowed.set(isCursorInsideSrc(range));
+          editor.onContextMenu(
+            function (/*e: monaco.editor.IEditorMouseEvent*/) {
+              const model = editor.getModel();
+              if (model) {
+                const range = editor.getSelection();
+                if (range && range.startColumn == range.endColumn) {
+                  insertAllowed.set(true);
+                } else {
+                  insertAllowed.set(false);
+                  if (range) insertAllowed.set(isCursorInsideSrc(range));
+                }
+                // console.log(editor.getModel().getLineContent(e.target.position.lineNumber))
               }
-
-              // console.log(editor.getModel().getLineContent(e.target.position.lineNumber))
             }
-          });
+          );
 
           editor.addAction({
             id: 'myInsertConstant',

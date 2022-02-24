@@ -50,7 +50,6 @@
         </q-toolbar>
         <div v-if="selectedTemplate" class="fit container">
           <MonacoEditor
-            class="editor"
             ref="editor"
             v-model="code"
             :templateType="templates[selectedTemplate].type"
@@ -60,8 +59,45 @@
       </template>
 
       <template v-slot:after>
-        <div class="fit preview">
-          <iframe ref="render" width="100%" height="100%" frameborder="0">
+        <q-toolbar
+          class="text-white shadow-2"
+          style="background-color: #1f2227"
+        >
+          <q-space />
+          <q-btn
+            class="q-ml-md"
+            size="md"
+            flat
+            round
+            icon="desktop_mac"
+            @click="iframeWidth = '100%'"
+          ></q-btn>
+          <q-btn
+            class="q-ml-md"
+            size="md"
+            flat
+            round
+            icon="tablet_mac"
+            @click="iframeWidth = '767px'"
+          ></q-btn>
+          <q-btn
+            class="q-ml-md"
+            size="md"
+            flat
+            round
+            icon="smartphone"
+            @click="iframeWidth = '479px'"
+          ></q-btn>
+          <span class="q-ml-md text-bold">{{ iframeWidth }}</span>
+          <q-space />
+        </q-toolbar>
+        <div class="row fit preview justify-center">
+          <iframe
+            ref="render"
+            :width="iframeWidth"
+            height="100%"
+            frameborder="0"
+          >
           </iframe>
         </div>
       </template>
@@ -120,7 +156,7 @@
     }
     .preview {
       overflow: hidden !important;
-      max-height: calc(100vh - 50px);
+      max-height: calc(100vh - 100px);
     }
   }
 }
@@ -159,6 +195,7 @@ export default defineComponent({
     const dialogVars = ref(false);
     const varsError = ref(false);
     const varsErrors = ref<{ [key: string]: boolean }>({});
+    const iframeWidth = ref('100%');
 
     const renderHtml = (html: string) => {
       if (window) {
@@ -242,6 +279,7 @@ export default defineComponent({
     };
 
     return {
+      iframeWidth,
       preview,
       varsErrors,
       varsError,

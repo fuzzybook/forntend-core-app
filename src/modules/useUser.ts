@@ -1,5 +1,4 @@
 import { reactive, toRefs } from 'vue';
-
 import { apolloClient, AUTH_TOKEN } from 'src/boot/graphql';
 import {
   ME,

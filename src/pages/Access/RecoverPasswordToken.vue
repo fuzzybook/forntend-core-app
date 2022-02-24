@@ -167,8 +167,8 @@ export default defineComponent({
         message: t('login.allreadyloggedin'),
         cancel: false,
         persistent: true,
-      }).onOk(async () => {
-        await router.push('/');
+      }).onOk(() => {
+        void router.push('/');
       });
     } else {
       token.value = (route.params.token as string) || '';
@@ -189,8 +189,8 @@ export default defineComponent({
             message: t(error),
             cancel: false,
             persistent: true,
-          }).onOk(async () => {
-            await router.push('/');
+          }).onOk( () => {
+            void router.push('/');
           });
         }
       } else {
@@ -199,8 +199,8 @@ export default defineComponent({
           message: t('login.tokennotfound'),
           cancel: false,
           persistent: true,
-        }).onOk(async () => {
-          await router.push('/');
+        }).onOk( () => {
+          void router.push('/');
         });
       }
     }
